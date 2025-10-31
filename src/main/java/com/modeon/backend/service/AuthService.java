@@ -11,6 +11,7 @@ import com.modeon.backend.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -51,21 +52,17 @@ public class AuthService {
         try {
             String loginId = request.getEmail() != null ? request.getEmail() : request.getUsername();
 
-            // 내부적으로 유저 디테일 호출해서 활성화 여부를 체크함.
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginId,
-                            request.getPassword()
-                    )
-            );
-
             User user = userRepository.findByEmail(loginId)
                     .or(() -> userRepository.findByUsername(loginId))
-                    .orElseThrow(() -> new AuthenticationException("Authentication failed"));
+                    .orElseThrow(() -> new AuthenticationException("Invalid email or password"));
 
             if (!user.isEnabled()) {
-                throw new UserNotActivatedException("User is not activated");
+                throw new DisabledException("User is not activated");
             }
+
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginId, request.getPassword())
+            );
 
             String jwtToken = jwtService.generateToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
@@ -75,10 +72,14 @@ public class AuthService {
                     .refreshToken(refreshToken)
                     .user(UserDto.fromEntity(user))
                     .build();
+
+        } catch (DisabledException | AuthenticationException e) {
+            throw e;
         } catch (Exception e) {
             throw new AuthenticationException("Invalid email or password");
         }
     }
+
 
     public AuthResponse refreshToken(RefreshTokenRequest request){
         String refreshToken = request.getRefreshToken();
