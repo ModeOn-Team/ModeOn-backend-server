@@ -9,9 +9,9 @@ services:
     env_file:
       - .env
     environment:
-      - SPRING_DEVTOOLS_RESTART_POLLING=true
-      - SPRING_DEVTOOLS_RESTART_ENABLED=true
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=prod
+    volumes:
+      - ./:/app
     depends_on:
       - postgres
       - redis
