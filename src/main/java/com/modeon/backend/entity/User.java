@@ -41,7 +41,7 @@ public class User implements UserDetails {
     @Column(name = "profile_image_url", columnDefinition = "Text")
     private String profileImageUrl;
 
-    private String bio;
+    private String address;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
