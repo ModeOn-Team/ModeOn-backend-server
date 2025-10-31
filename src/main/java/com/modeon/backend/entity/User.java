@@ -54,11 +54,20 @@ public class User implements UserDetails {
     private boolean enabled;
 
     @PrePersist
-    protected void onCreate() { enabled = false; }
+    protected void onCreate() {
+        if (this.role == null || this.role.isBlank()) {
+            this.role = "ROLE_USER";
+        }
+
+        this.enabled = this.role.equals("ROLE_ADMIN");
+    }
+
+    @Column(nullable = false)
+    private String role = "ROLE_USER";
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return List.of(new SimpleGrantedAuthority(role));
     }
 
     @Override

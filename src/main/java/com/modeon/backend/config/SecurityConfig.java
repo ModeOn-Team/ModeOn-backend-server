@@ -32,6 +32,9 @@ public class SecurityConfig {
     @Value("${frontend.url}")
     private String frontendUrl;
 
+    @Value("${ADMIN_URL}")
+    private String adminUrl;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -39,6 +42,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth -> auth
+                                .requestMatchers("/api/" + adminUrl + "/**").hasRole("ADMIN")
                                 .requestMatchers(
                                         "/api/auth/**",
                                         "/api/images/**",
