@@ -1,0 +1,2 @@
+0000000000000000000000000000000000000000 5a5a0768455eb8fe933827426f2bcba5ce19805f joonlee <96dalee@gmail.com> 1761745888 +0900	clone: from https://github.com/ModeOn-Team/ModeOn-backend-server.git
+5a5a0768455eb8fe933827426f2bcba5ce19805f cbd1aa3f62cfcd5e2f498ca61838ed22b5ecd2fb joonlee <96dalee@gmail.com> 1761899364 +0900	commit: feat: 실시간 채팅 기능 완성 (WebSocket + Redis Pub/Sub + JPA Auditing)

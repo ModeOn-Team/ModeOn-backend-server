@@ -1,0 +1,1 @@
+feat: 실시간 채팅 기능 완성 (WebSocket + Redis Pub/Sub + JPA Auditing)
