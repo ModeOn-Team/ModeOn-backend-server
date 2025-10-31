@@ -106,10 +106,6 @@ public class MailService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()-> new IllegalArgumentException("User not found"));
 
-        if (!user.isEnabled()){
-            throw new IllegalArgumentException("not verify email");
-        }
-
         String number = createNumber();
         String redisKey = "PwChangeCodeCache::" + email;
         redisTemplate.opsForValue().set(redisKey, number, 5, TimeUnit.MINUTES);
