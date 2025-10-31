@@ -4,12 +4,12 @@ import com.modeon.backend.dto.*;
 import com.modeon.backend.entity.AuthProvider;
 import com.modeon.backend.entity.User;
 import com.modeon.backend.exception.AuthenticationException;
-import com.modeon.backend.exception.BadRequestException;
 import com.modeon.backend.exception.UserAlreadyExistsException;
 import com.modeon.backend.exception.UserNotActivatedException;
 import com.modeon.backend.repository.UserRepository;
 import com.modeon.backend.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private final RedisTemplate<String, String> redisTemplate;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -74,7 +75,7 @@ public class AuthService {
                     .refreshToken(refreshToken)
                     .user(UserDto.fromEntity(user))
                     .build();
-        } catch (BadRequestException e) {
+        } catch (Exception e) {
             throw new AuthenticationException("Invalid email or password");
         }
     }
@@ -99,5 +100,29 @@ public class AuthService {
                 .refreshToken(NewRefreshToken)
                 .user(UserDto.fromEntity(user))
                 .build();
-    };
+    }
+
+    public String getCode(String email){
+        return redisTemplate.opsForValue().get("PwChangeCodeCache::" + email);
+    }
+
+    public void changePassword(ChangePasswordRequest request){
+        String email = request.getEmail();
+
+        if (!request.getAuthCode().equals(getCode(email))){
+            throw new IllegalArgumentException("wrong Code");
+        }
+
+        if (!request.getPassword().equals(request.getPassword2())){
+            throw new IllegalArgumentException("Passwords do not match.");
+        }
+
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AuthenticationException("user not found: " + email));
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        userRepository.save(user);
+    }
 }

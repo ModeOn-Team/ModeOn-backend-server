@@ -60,4 +60,15 @@ public class AuthController {
     public Boolean verifyEmail(@RequestBody EmailRequest emailRequest, @PathVariable String emailCode) {
         return mailService.verifyEmail(emailRequest, emailCode);
     }
+
+    @PostMapping("/findPw/{emailCode}")
+    public String findPw(@RequestBody EmailRequest emailRequest, @PathVariable String emailCode) {
+        return mailService.findPw(emailRequest, emailCode);
+    }
+
+    @PostMapping("/changePw")
+    public ResponseEntity<?> changePw(@RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request);
+        return ResponseEntity.ok(Map.of("message", "Password changed successfully."));
+    }
 }

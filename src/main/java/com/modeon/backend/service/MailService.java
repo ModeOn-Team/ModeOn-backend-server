@@ -48,7 +48,7 @@ public class MailService {
         message.setRecipients(MimeMessage.RecipientType.TO, mail);
         message.setSubject("이메일 인증");
         String body = "";
-        body += "<h3>modeon 에서 요청하신 인증 번호 입니다.</h3>";
+        body += "<h3>ModeOn 에서 요청하신 인증 번호 입니다.</h3>";
         body += "<h1>" + number + "</h1>";
         body += "<h3>감사합니다.</h3>";
         message.setText(body, "UTF-8", "html");
@@ -95,5 +95,25 @@ public class MailService {
         userRepository.save(user);
 
         return user.isEnabled();
+    }
+
+    public String findPw(EmailRequest emailRequest, String emailCode){
+        String email = emailRequest.getEmail();
+        if (!emailCode.equals(getCode(email))){
+            throw new IllegalArgumentException("wrong Code");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()-> new IllegalArgumentException("User not found"));
+
+        if (!user.isEnabled()){
+            throw new IllegalArgumentException("not verify email");
+        }
+
+        String number = createNumber();
+        String redisKey = "PwChangeCodeCache::" + email;
+        redisTemplate.opsForValue().set(redisKey, number, 5, TimeUnit.MINUTES);
+
+        return number;
     }
 }
