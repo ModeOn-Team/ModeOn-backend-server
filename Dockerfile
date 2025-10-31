@@ -1,21 +1,13 @@
-# 빌드용
-FROM gradle:8.14.3-jdk17 AS build
+FROM gradle:8.14.3-jdk17
 
 WORKDIR /app
 
-COPY build.gradle settings.gradle ./
-RUN gradle --version
+COPY build.gradle settings.gradle gradlew ./
+COPY gradle ./gradle
 
-COPY src ./src
+RUN chmod +x ./gradlew
 
-RUN gradle build -x test
-
-# 실행 용
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-
-COPY --from=build /app/build/libs/*.jar ./app.jar
-
+# src는 volume로 마운트할 거라 복사 안 함
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["./gradlew", "bootRun"]
