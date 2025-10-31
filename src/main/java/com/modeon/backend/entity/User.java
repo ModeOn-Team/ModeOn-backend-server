@@ -54,7 +54,7 @@ public class User implements UserDetails {
     private boolean enabled;
 
     @PrePersist
-    protected void onCreate() { enabled = true; }
+    protected void onCreate() { enabled = false; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

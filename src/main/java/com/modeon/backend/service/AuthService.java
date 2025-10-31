@@ -6,6 +6,7 @@ import com.modeon.backend.entity.User;
 import com.modeon.backend.exception.AuthenticationException;
 import com.modeon.backend.exception.BadRequestException;
 import com.modeon.backend.exception.UserAlreadyExistsException;
+import com.modeon.backend.exception.UserNotActivatedException;
 import com.modeon.backend.repository.UserRepository;
 import com.modeon.backend.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthResponse register(RegisterRequest request) {
+    public boolean register(RegisterRequest request) {
         if(userRepository.existsByUsername(request.getUsername())) {
             throw new UserAlreadyExistsException("Username already exists");
         }
@@ -40,22 +41,16 @@ public class AuthService {
                 .provider(AuthProvider.LOCAL)
                 .build();
 
-        user = userRepository.save(user);
+        userRepository.save(user);
 
-        String jwtToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
-
-        return AuthResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .user(UserDto.fromEntity(user))
-                .build();
+        return true;
     }
 
     public AuthResponse authenticate(AuthRequest request) {
         try {
             String loginId = request.getEmail() != null ? request.getEmail() : request.getUsername();
 
+            // 내부적으로 유저 디테일 호출해서 활성화 여부를 체크함.
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginId,
@@ -66,6 +61,10 @@ public class AuthService {
             User user = userRepository.findByEmail(loginId)
                     .or(() -> userRepository.findByUsername(loginId))
                     .orElseThrow(() -> new AuthenticationException("Authentication failed"));
+
+            if (!user.isEnabled()) {
+                throw new UserNotActivatedException("User is not activated");
+            }
 
             String jwtToken = jwtService.generateToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
