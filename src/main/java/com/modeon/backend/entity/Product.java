@@ -42,6 +42,7 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @Builder.Default
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
     private List<ProductImage> detailImages = new ArrayList<>();
