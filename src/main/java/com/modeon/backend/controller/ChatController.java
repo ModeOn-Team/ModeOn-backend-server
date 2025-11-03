@@ -107,7 +107,7 @@ public class ChatController {
                 .build();
         
         ChatMessageDto savedMessage = chatService.saveMessage(chatMessageDto);
-        redisPublisher.publish(savedMessage);
+        publishToRedis(savedMessage);
         
         return ResponseEntity.ok(savedMessage);
     }
@@ -130,7 +130,7 @@ public class ChatController {
                 .build();
         
         ChatMessageDto savedMessage = chatService.saveMessage(chatMessageDto);
-        redisPublisher.publish(savedMessage);
+        publishToRedis(savedMessage);
         
         return ResponseEntity.ok(savedMessage);
     }
