@@ -22,7 +22,9 @@ public class ProductResponse {
     private Color color;
     private Gender gender;
     private CategoryDto category;
-//    private List<String> detailImages = new ArrayList<>();
+
+    @Builder.Default
+    private List<String> detailImages = new ArrayList<>();
 
     public static ProductResponse fromEntity(Product product){
         return ProductResponse.builder()
@@ -34,7 +36,7 @@ public class ProductResponse {
                 .color(product.getColor())
                 .gender(product.getGender())
                 .category(CategoryDto.fromEntity(product.getCategory()))
-//                .detailImages(product.getDetailImages().stream().map(ProductImage::getImageUrl).toList())
+                .detailImages(product.getDetailImages().stream().map(ProductImage::getImageUrl).toList())
                 .build();
     }
 }
