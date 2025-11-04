@@ -17,11 +17,11 @@ public class ProductResponse {
     private Long id;
     private String name;
     private Integer price;
-    private Integer stock;
-    private Size size;
-    private Color color;
     private Gender gender;
     private CategoryDto category;
+
+    @Builder.Default
+    private List<ProductVariantResponse> variants = new ArrayList<>();
 
     @Builder.Default
     private List<String> detailImages = new ArrayList<>();
@@ -31,12 +31,12 @@ public class ProductResponse {
                 .id(product.getId())
                 .name(product.getName())
                 .price(product.getPrice())
-                .stock(product.getStock())
-                .size(product.getSize())
-                .color(product.getColor())
                 .gender(product.getGender())
                 .category(CategoryDto.fromEntity(product.getCategory()))
                 .detailImages(product.getDetailImages().stream().map(ProductImage::getImageUrl).toList())
+                .variants(product.getVariants().stream()
+                        .map(ProductVariantResponse::fromEntity)
+                        .toList())
                 .build();
     }
 }

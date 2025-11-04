@@ -8,6 +8,8 @@ import com.modeon.backend.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -36,5 +38,14 @@ public class CategoryService {
         Category saved = categoryRepository.save(category);
 
         return CategoryResponse.fromEntity(saved);
+    }
+
+    public List<CategoryResponse> getAllCategories(){
+        authenticationService.checkAdmin();
+        List<Category> categories = categoryRepository.findAll();
+
+        return categories.stream()
+                .map(CategoryResponse::fromEntity)
+                .toList();
     }
 }

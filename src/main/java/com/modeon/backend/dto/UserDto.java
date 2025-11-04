@@ -17,6 +17,7 @@ public class UserDto {
     private String email;
     private String fullName;
     private String address;
+    private String role;
     private String profileImageUrl;
 
     public static UserDto fromEntity(User user){
@@ -26,6 +27,7 @@ public class UserDto {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .address(user.getAddress())
+                .role(user.getRole())
                 .profileImageUrl(user.getProfileImageUrl())
                 .build();
     }

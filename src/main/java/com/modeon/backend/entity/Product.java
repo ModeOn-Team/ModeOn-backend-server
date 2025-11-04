@@ -26,21 +26,16 @@ public class Product {
     @Column(nullable = false)
     private Integer price;
 
-    @Column(nullable = false)
-    private Integer stock;
-
-    @Enumerated(EnumType.STRING)
-    private Size size;
-
-    @Enumerated(EnumType.STRING)
-    private Color color;
-
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductVariant> variants = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)

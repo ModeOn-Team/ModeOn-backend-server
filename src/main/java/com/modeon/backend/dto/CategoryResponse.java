@@ -9,12 +9,14 @@ import lombok.Data;
 public class CategoryResponse {
     private Long id;
     private String name;
+    private Integer depth;
     private Long parentId;
 
     public static CategoryResponse fromEntity(Category category) {
         return CategoryResponse.builder()
                 .id(category.getId())
                 .name(category.getName())
+                .depth(category.getDepth())
                 .parentId(category.getParent() != null ? category.getParent().getId() : null)
                 .build();
     }

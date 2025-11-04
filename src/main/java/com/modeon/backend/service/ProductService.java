@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,9 +34,6 @@ public class ProductService {
         Product product = Product.builder()
                 .name(request.getName())
                 .price(request.getPrice())
-                .stock(request.getStock())
-                .size(request.getSize())
-                .color(request.getColor())
                 .gender(request.getGender())
                 .category(category)
                 .build();
@@ -81,5 +77,14 @@ public class ProductService {
 
         Product response = productRepository.save(product);
         return ProductResponse.fromEntity(response);
+    }
+
+    public void deleteProduct(Long productId){
+        authenticationService.checkAdmin();
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+
+        productRepository.delete(product);
     }
 }
