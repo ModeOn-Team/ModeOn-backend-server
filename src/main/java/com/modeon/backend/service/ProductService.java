@@ -2,9 +2,7 @@ package com.modeon.backend.service;
 
 import com.modeon.backend.dto.ProductRequest;
 import com.modeon.backend.dto.ProductResponse;
-import com.modeon.backend.entity.Category;
-import com.modeon.backend.entity.Product;
-import com.modeon.backend.entity.ProductImage;
+import com.modeon.backend.entity.*;
 import com.modeon.backend.exception.ResourceNotFoundException;
 import com.modeon.backend.repository.CategoryRepository;
 import com.modeon.backend.repository.ProductRepository;
@@ -50,6 +48,13 @@ public class ProductService {
         return products.map(ProductResponse::fromEntity);
     }
 
+    public ProductResponse getProductDetail(Long productId){
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        return ProductResponse.fromEntity(product);
+    }
+
     @Transactional
     public ProductResponse saveProductImages(Long productId, List<MultipartFile> images) {
         Product product = productRepository.findById(productId)
@@ -86,5 +91,34 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
         productRepository.delete(product);
+    }
+
+    public Page<ProductResponse> searchProduct(
+            Gender gender,
+            String categoryName,
+            Size size,
+            Color color,
+            String word,
+            Pageable pageable
+    ) {
+        Page<Product> products;
+
+        if (categoryName == null || categoryName.equals("전체")) {
+            products = productRepository.searchWithoutCategory(gender, size, color, word, pageable);
+        } else {
+            Category category = categoryRepository.findByName(categoryName)
+                    .orElseThrow(() ->new ResourceNotFoundException("Category not found"));
+
+            products = productRepository.searchByCategoryTree(
+                    gender,
+                    category.getId(),
+                    size,
+                    color,
+                    word,
+                    pageable
+            );
+        }
+
+        return products.map(ProductResponse::fromEntity);
     }
 }

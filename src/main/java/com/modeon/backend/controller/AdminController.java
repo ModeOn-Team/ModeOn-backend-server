@@ -7,16 +7,12 @@ import com.modeon.backend.service.ProductService;
 import com.modeon.backend.service.ProductVariantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/${ADMIN_URL}")
@@ -38,25 +34,10 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/categories")
-    public List<CategoryResponse> getAllCategories() {
-        return categoryService.getAllCategories();
-    }
-
     @PostMapping("/product")
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest request){
         ProductResponse response = productService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @GetMapping("/product")
-    public ResponseEntity<Page<ProductResponse>> getAllProduct(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ){
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ProductResponse> products = productService.getAllProduct(pageable);
-        return ResponseEntity.ok(products);
     }
 
     @DeleteMapping("/product/{productId}")
