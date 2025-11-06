@@ -1,4 +1,4 @@
-package com.modeon.backend.chat.config;
+package com.modeon.backend.entity;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -84,11 +84,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             
                             try {
                                 // JWT 토큰 검증
-                                Claims claims = Jwts.parser()
-                                        .verifyWith(key)
+                                Claims claims = Jwts.parserBuilder()
+                                        .setSigningKey(key)
                                         .build()
-                                        .parseSignedClaims(token)
-                                        .getPayload();
+                                        .parseClaimsJws(token)
+                                        .getBody();
                                 
                                 // 사용자 정보를 세션에 저장
                                 String userId = claims.getSubject();

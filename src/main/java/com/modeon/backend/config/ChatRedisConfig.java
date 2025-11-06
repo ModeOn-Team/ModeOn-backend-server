@@ -1,4 +1,4 @@
-package com.modeon.backend.chat.config;
+package com.modeon.backend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -19,10 +20,13 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 public class ChatRedisConfig {
 
     private final SimpMessageSendingOperations messagingTemplate;
+
+    public ChatRedisConfig(@Lazy SimpMessageSendingOperations messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
+    }
 
     @Bean
     public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
