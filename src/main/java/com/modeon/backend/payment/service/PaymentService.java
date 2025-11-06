@@ -29,8 +29,6 @@ public class PaymentService {
     @Value("${toss.secret-key}")
     private String secretKey;
 
-
-
     public void confirmPayment(User user, PaymentConfirmRequest request) {
 
         // 서버에 승인 요청 보내야함

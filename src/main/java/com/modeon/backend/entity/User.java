@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -63,6 +64,7 @@ public class User implements UserDetails {
     }
 
     @Column(nullable = false)
+    @Builder.Default
     private String role = "ROLE_USER";
 
     @Override
@@ -79,4 +81,19 @@ public class User implements UserDetails {
 
     private String providerId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "membership", nullable = false)
+    @Builder.Default
+    private MembershipLevel membership = MembershipLevel.WELCOME;
+
+    @Column(name = "point")
+    @Builder.Default
+    private Integer point = 0;
+
+    @Column(name = "birthmonth")
+    private LocalDate birthMonth;
+
+    // 주문 내역
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Order> orders;
 }
