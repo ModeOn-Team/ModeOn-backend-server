@@ -80,7 +80,7 @@ public class MembershipServiceImpl implements MembershipService {
 
         userRepository.findAll().forEach(user -> {
             MembershipLevel currentLevel = user.getMembership();
-            Long userId = user.getUserId();
+            Long userId = user.getId();
 
             // 1. SILVER 이상: 생일 쿠폰 - 생일 달에만 지급
             if (currentLevel.compareTo(MembershipLevel.SILVER) >= 0 && isBirthdayMonth(user)) {
