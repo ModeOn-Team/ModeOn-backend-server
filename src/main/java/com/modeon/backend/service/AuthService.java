@@ -40,6 +40,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
+                .address(request.getAddress())
                 .provider(AuthProvider.LOCAL)
                 .build();
 
