@@ -15,6 +15,8 @@ public class RegisterRequest {
     @Email(message = "Email should be valid")
     private String Email;
 
+    private String address;
+
     @NotBlank(message = "password is required")
     @Size(min = 6, message = "password must be at least 6")
     private String password;

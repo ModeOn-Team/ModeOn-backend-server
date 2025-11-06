@@ -1,7 +1,7 @@
 package com.modeon.backend.cart.entity;
 
 import com.modeon.backend.entity.User;
-import com.modeon.backend.product.entity.Product;
+import com.modeon.backend.entity.Product;
 import jakarta.persistence.*;
 import lombok.*;
 
