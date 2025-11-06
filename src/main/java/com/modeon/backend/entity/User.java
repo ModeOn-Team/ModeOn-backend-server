@@ -1,47 +1,82 @@
 package com.modeon.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "member")
-@Getter
-@Setter
+@Table(name = "users")
+@Data
+@Builder
 @NoArgsConstructor
-public class User {
-
+@AllArgsConstructor
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Long userId;
+    private long id;
 
-    @Column(name = "username", nullable = false, unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(unique = true, nullable = true)
     private String email;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "membership", nullable = false)
-    private MembershipLevel membership = MembershipLevel.WELCOME;
+    @Column(name = "full_name")
+    private String fullName;
 
-    @Column(name = "point")
-    private Integer point = 0;
+    @Column(nullable = false)
+    private String password;
 
-    @Column(name = "birthmonth")
-    private LocalDate birthMonth;
+    @Column(name = "profile_image_url", columnDefinition = "Text")
+    private String profileImageUrl;
 
-    // 생일 쿠폰 지급
+    private String address;
+
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
-    // 주문 내역
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Order> orders;
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    private boolean enabled;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.role == null || this.role.isBlank()) {
+            this.role = "ROLE_USER";
+        }
+
+        this.enabled = this.role.equals("ROLE_ADMIN");
+    }
+
+    @Column(nullable = false)
+    private String role = "ROLE_USER";
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role));
+    }
+
+    @Override
+    public boolean isEnabled() {return enabled; }
+
+    // 소셜 프로바이더
+    @Enumerated(EnumType.STRING)
+    private AuthProvider provider;
+
+    private String providerId;
+
 }

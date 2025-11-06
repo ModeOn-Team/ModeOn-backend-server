@@ -1,34 +1,81 @@
 package com.modeon.backend.config;
 
+import com.modeon.backend.security.JwtAuthenticationEntryPoint;
+import com.modeon.backend.security.JwtAuthenticationFilter;
+import com.modeon.backend.security.OAuth2SuccessHandler;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
+    @Value("${ADMIN_URL}")
+    private String adminUrl;
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(
+                        auth -> auth
+                                .requestMatchers("/api/" + adminUrl + "/**").hasRole("ADMIN")
+                                .requestMatchers(
+                                        "/api/auth/**",
+                                        "/api/images/**",
+                                        "/api/product/**",
+                                        "/oauth2/**",
+                                        "/login/oauth2/**",
+                                        "/error",
+                                        "/uploads/**"
+                                ).permitAll()
+                                .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2SuccessHandler)
+                )
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
 
-                .authorizeHttpRequests(auth -> auth
-                        // [테스트용 임시 설정] /api/users/1 경로에 대한 인증 요구사항을 해제
-                        .requestMatchers("/api/**").permitAll()
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of(frontendUrl));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Authorization"));
 
-                        // 모든 다른 요청은 인증된 사용자에게만 허용
-                        .anyRequest().authenticated()
-                );
-
-        // API 테스트를 위해 폼 로그인 기능과 HTTP Basic 인증을 잠시 비활성화 (선택 사항)
-        // 만약 로그인 페이지가 계속 뜨면 주석을 해제해 보세요.
-        http.httpBasic(AbstractHttpConfigurer::disable);
-        http.formLogin(AbstractHttpConfigurer::disable);
-
-        return http.build();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
