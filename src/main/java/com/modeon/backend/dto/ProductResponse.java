@@ -19,6 +19,8 @@ public class ProductResponse {
     private Integer price;
     private Gender gender;
     private CategoryDto category;
+    private Long wishListCount;
+    private boolean isWishList;
 
     @Builder.Default
     private List<ProductVariantResponse> variants = new ArrayList<>();

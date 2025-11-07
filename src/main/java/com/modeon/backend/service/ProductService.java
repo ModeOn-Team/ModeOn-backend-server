@@ -6,6 +6,7 @@ import com.modeon.backend.entity.*;
 import com.modeon.backend.exception.ResourceNotFoundException;
 import com.modeon.backend.repository.CategoryRepository;
 import com.modeon.backend.repository.ProductRepository;
+import com.modeon.backend.repository.WishListRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final FileUploadService fileUploadService;
+    private final WishListRepository wishListRepository;
 
     public ProductResponse createProduct(ProductRequest request){
         authenticationService.checkAdmin();
@@ -42,10 +44,18 @@ public class ProductService {
     }
 
     public Page<ProductResponse> getAllProduct(Pageable pageable){
-        authenticationService.checkAdmin();
+        User currentUser = authenticationService.getCurrentUser();
         Page<Product> products = productRepository.findAll(pageable);
 
-        return products.map(ProductResponse::fromEntity);
+        return products.map(product -> {
+            ProductResponse response = ProductResponse.fromEntity(product);
+            long wishListCount = wishListRepository.countByProductId(product.getId());
+            boolean isWishList = wishListRepository.existsByUserAndProduct(currentUser, product);
+
+            response.setWishListCount(wishListCount);
+            response.setWishList(isWishList);
+            return response;
+        });
     }
 
     public ProductResponse getProductDetail(Long productId){
@@ -54,6 +64,17 @@ public class ProductService {
 
         return ProductResponse.fromEntity(product);
     }
+
+    public Page<ProductResponse> getMyWishList(
+            Pageable pageable
+    ) {
+        User currentUser = authenticationService.getCurrentUser();
+        Page<Product> products = wishListRepository.findProductsByUserId(currentUser.getId(), pageable);
+
+        return products.map(ProductResponse::fromEntity);
+    }
+
+
 
     @Transactional
     public ProductResponse saveProductImages(Long productId, List<MultipartFile> images) {
@@ -101,6 +122,7 @@ public class ProductService {
             String word,
             Pageable pageable
     ) {
+        User currentUser = authenticationService.getCurrentUser();
         Page<Product> products;
 
         if (categoryName == null || categoryName.equals("전체")) {
@@ -119,6 +141,14 @@ public class ProductService {
             );
         }
 
-        return products.map(ProductResponse::fromEntity);
+        return products.map(product -> {
+            ProductResponse response = ProductResponse.fromEntity(product);
+            long wishListCount = wishListRepository.countByProductId(product.getId());
+            boolean isWishList = wishListRepository.existsByUserAndProduct(currentUser, product);
+
+            response.setWishListCount(wishListCount);
+            response.setWishList(isWishList);
+            return response;
+        });
     }
 }
