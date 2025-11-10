@@ -1,5 +1,6 @@
 package com.modeon.backend.cart.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.modeon.backend.entity.User;
 import com.modeon.backend.entity.Product;
 import jakarta.persistence.*;
@@ -11,6 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+
 public class Cart {
 
     @Id
@@ -19,10 +21,12 @@ public class Cart {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
+
     private Product product;
 
     private int count;

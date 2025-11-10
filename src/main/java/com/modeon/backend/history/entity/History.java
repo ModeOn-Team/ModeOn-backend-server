@@ -23,7 +23,7 @@ public class History {
     @ManyToOne(fetch = FetchType.LAZY)
     private Product product;
 
-    private int count;       // 몇 개 샀는지
+    private int count;
     private int price;       // 개당 가격
     private int totalPrice;  // 총 가격
 
