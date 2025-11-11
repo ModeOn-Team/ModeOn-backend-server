@@ -21,6 +21,7 @@ public class ProductResponse {
     private CategoryDto category;
     private Long wishListCount;
     private boolean isWishList;
+    private Long commentCount;
 
     @Builder.Default
     private List<ProductVariantResponse> variants = new ArrayList<>();

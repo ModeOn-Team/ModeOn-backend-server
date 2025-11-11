@@ -5,6 +5,7 @@ import com.modeon.backend.dto.ProductResponse;
 import com.modeon.backend.entity.*;
 import com.modeon.backend.exception.ResourceNotFoundException;
 import com.modeon.backend.repository.CategoryRepository;
+import com.modeon.backend.repository.CommentRepository;
 import com.modeon.backend.repository.ProductRepository;
 import com.modeon.backend.repository.WishListRepository;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final FileUploadService fileUploadService;
     private final WishListRepository wishListRepository;
+    private final CommentRepository commentRepository;
 
     public ProductResponse createProduct(ProductRequest request){
         authenticationService.checkAdmin();
@@ -51,18 +53,25 @@ public class ProductService {
             ProductResponse response = ProductResponse.fromEntity(product);
             long wishListCount = wishListRepository.countByProductId(product.getId());
             boolean isWishList = wishListRepository.existsByUserAndProduct(currentUser, product);
+            Long commentCount = commentRepository.countByProductId(product.getId());
+
 
             response.setWishListCount(wishListCount);
             response.setWishList(isWishList);
+            response.setCommentCount(commentCount);
             return response;
         });
     }
 
     public ProductResponse getProductDetail(Long productId){
+        User currentUser = authenticationService.getCurrentUser();
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        return ProductResponse.fromEntity(product);
+        boolean isWishList = wishListRepository.existsByUserAndProduct(currentUser, product);
+        ProductResponse response = ProductResponse.fromEntity(product);
+        response.setWishList(isWishList);
+        return response;
     }
 
     public Page<ProductResponse> getMyWishList(
@@ -122,32 +131,32 @@ public class ProductService {
             String word,
             Pageable pageable
     ) {
+        Category category = null;
+
         User currentUser = authenticationService.getCurrentUser();
-        Page<Product> products;
-
-        if (categoryName == null || categoryName.equals("전체")) {
-            products = productRepository.searchWithoutCategory(gender, size, color, word, pageable);
-        } else {
-            Category category = categoryRepository.findByName(categoryName)
-                    .orElseThrow(() ->new ResourceNotFoundException("Category not found"));
-
-            products = productRepository.searchByCategoryTree(
-                    gender,
-                    category.getId(),
-                    size,
-                    color,
-                    word,
-                    pageable
-            );
+        if (categoryName != null && !categoryName.isBlank()) {
+            category = categoryRepository.findByName(categoryName)
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         }
+
+        Page<Product> products = productRepository.searchProducts(
+                gender,
+                category != null ? category.getId() : null,
+                size,
+                color,
+                word,
+                pageable
+        );
 
         return products.map(product -> {
             ProductResponse response = ProductResponse.fromEntity(product);
             long wishListCount = wishListRepository.countByProductId(product.getId());
             boolean isWishList = wishListRepository.existsByUserAndProduct(currentUser, product);
+            Long commentCount = commentRepository.countByProductId(product.getId());
 
             response.setWishListCount(wishListCount);
             response.setWishList(isWishList);
+            response.setCommentCount(commentCount);
             return response;
         });
     }
