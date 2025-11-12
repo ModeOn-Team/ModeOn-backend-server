@@ -30,6 +30,7 @@ public class FileUploadService {
             BufferedImage resizedImage = resizeImage(squareImage, IMAGE_SIZE, IMAGE_SIZE);
 
             File outputFile = new File(fileName);
+            createDirectoryIfNotExists(outputFile.getParentFile());
             ImageIO.write(resizedImage, "jpg", outputFile);
 
             return fileName;
@@ -56,6 +57,14 @@ public class FileUploadService {
         }
     }
 
+    private void createDirectoryIfNotExists(File directory) {
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (!created) {
+                throw new RuntimeException("Failed to create directory: " + directory.getAbsolutePath());
+            }
+        }
+    }
 
     private BufferedImage cropToSquare(BufferedImage image) {
         int width = image.getWidth();

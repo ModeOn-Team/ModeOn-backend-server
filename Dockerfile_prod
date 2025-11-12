@@ -1,0 +1,25 @@
+# 소스 코드 복사 및 빌드
+COPY src src
+RUN ./gradlew bootJar --no-daemon
+
+# 실행 스테이지
+FROM eclipse-temurin:17-jre-jammy
+
+# 비루트 사용자 생성 (Ubuntu 방식)
+RUN addgroup --system spring && adduser --system spring --ingroup spring
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 빌드된 JAR 파일 복사 (와일드카드 사용)
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+# 권한 설정
+RUN chown spring:spring app.jar
+USER spring
+
+# 포트 노출
+EXPOSE 8080
+
+# 애플리케이션 실행
+ENTRYPOINT ["java", "-jar", "app.jar"]
