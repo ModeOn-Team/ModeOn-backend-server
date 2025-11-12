@@ -10,8 +10,6 @@ services:
       - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-    volumes:
-      - ./:/app
     depends_on:
       - postgres
       - redis
