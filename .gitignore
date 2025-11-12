@@ -44,4 +44,4 @@ out/
 .env
 
 # local image storage
-uploads/*
+uploads/product/*
