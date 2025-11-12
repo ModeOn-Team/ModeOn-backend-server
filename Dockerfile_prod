@@ -25,6 +25,10 @@ RUN addgroup --system spring && adduser --system spring --ingroup spring
 # 작업 디렉토리 설정
 WORKDIR /app
 
+# 업로드 디렉토리 생성 및 권한 설정 (root로 생성 후 spring 소유로 변경)
+RUN mkdir -p /app/uploads/product \
+    && chown -R spring:spring /app/uploads
+
 # 빌드된 JAR 파일 복사 (와일드카드 사용)
 COPY --from=builder /app/build/libs/*.jar app.jar
 
