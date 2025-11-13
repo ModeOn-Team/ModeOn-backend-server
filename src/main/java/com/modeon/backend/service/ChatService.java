@@ -6,6 +6,8 @@ import com.modeon.backend.chat.entity.ChatMessage;
 import com.modeon.backend.chat.entity.ChatRoom;
 import com.modeon.backend.chat.repository.ChatMessageRepository;
 import com.modeon.backend.chat.repository.ChatRoomRepository;
+import com.modeon.backend.dto.UserDto;
+import com.modeon.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class ChatService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final UserRepository userRepository;
 
     /**
      * 사용자의 채팅방 조회 또는 생성
@@ -29,7 +32,7 @@ public class ChatService {
      */
     @Transactional
     public ChatRoomDto getOrCreateChatRoom(Long userId) {
-        ChatRoom chatRoom = chatRoomRepository.findByUserIdAndIsActiveTrue(userId)
+        ChatRoom chatRoom = chatRoomRepository.findFirstByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userId)
                 .orElseGet(() -> {
                     ChatRoom newRoom = ChatRoom.builder()
                             .userId(userId)
@@ -80,7 +83,15 @@ public class ChatService {
     public List<ChatRoomDto> getAllActiveChatRooms() {
         List<ChatRoom> rooms = chatRoomRepository.findByIsActiveTrue();
         return rooms.stream()
-                .map(ChatRoomDto::from)
+                .map(room -> {
+                    ChatRoomDto dto = ChatRoomDto.from(room);
+                    // 사용자 정보 조회 및 매핑
+                    if (room.getUserId() != null) {
+                        userRepository.findById(room.getUserId())
+                                .ifPresent(user -> dto.setOtherUser(UserDto.fromEntity(user)));
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -90,7 +101,15 @@ public class ChatService {
     public List<ChatRoomDto> getChatRoomsByAdminId(Long adminId) {
         List<ChatRoom> rooms = chatRoomRepository.findByAdminId(adminId);
         return rooms.stream()
-                .map(ChatRoomDto::from)
+                .map(room -> {
+                    ChatRoomDto dto = ChatRoomDto.from(room);
+                    // 사용자 정보 조회 및 매핑
+                    if (room.getUserId() != null) {
+                        userRepository.findById(room.getUserId())
+                                .ifPresent(user -> dto.setOtherUser(UserDto.fromEntity(user)));
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 

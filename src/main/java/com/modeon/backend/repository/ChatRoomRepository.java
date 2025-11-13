@@ -10,7 +10,8 @@ import java.util.Optional;
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     
-    Optional<ChatRoom> findByUserIdAndIsActiveTrue(Long userId);
+    // 가장 최근에 생성된 활성 채팅방 1개만 반환
+    Optional<ChatRoom> findFirstByUserIdAndIsActiveTrueOrderByCreatedAtDesc(Long userId);
     
     List<ChatRoom> findByIsActiveTrue();
     

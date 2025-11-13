@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ChatMessageDto {
     
+    private Long id;  // 메시지 고유 ID (프론트엔드 key prop용)
     private Long roomId;
     private String sender;  // "USER" or "ADMIN"
     private String message;  // content
@@ -25,6 +26,7 @@ public class ChatMessageDto {
 
     public static ChatMessageDto from(ChatMessage chatMessage) {
         return ChatMessageDto.builder()
+                .id(chatMessage.getId())  // 메시지 ID 추가
                 .roomId(chatMessage.getRoomId())
                 .sender(chatMessage.getSender())
                 .message(chatMessage.getContent())
@@ -36,3 +38,4 @@ public class ChatMessageDto {
                 .build();
     }
 }
+
