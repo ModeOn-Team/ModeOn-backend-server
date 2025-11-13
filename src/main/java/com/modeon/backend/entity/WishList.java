@@ -33,4 +33,16 @@ public class WishList {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof WishList)) return false;
+        WishList that = (WishList) o;
+        return id != null && id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }
