@@ -13,25 +13,22 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findAllByOrderByPriceAsc();
-
-    List<Product> findAllByOrderByPriceDesc();
-
     @Query("""
-            SELECT DISTINCT p FROM Product p
-            JOIN p.variants v
-            JOIN p.category c
-            WHERE (:gender IS NULL OR p.gender = :gender)
-              AND (:size IS NULL OR v.size = :size)
-              AND (:color IS NULL OR v.color = :color)
-              AND (
-                  :categoryId IS NULL OR
-                  c.id = :categoryId OR
-                  (c.parent IS NOT NULL AND c.parent.id = :categoryId) OR
-                  (c.parent.parent IS NOT NULL AND c.parent.parent.id = :categoryId)
-              )
-              AND (:word IS NULL OR :word = '' OR p.name LIKE CONCAT('%', :word, '%'))
-            """)
+        SELECT DISTINCT p FROM Product p
+        JOIN p.variants v
+        JOIN p.category c
+        WHERE (:gender IS NULL OR p.gender = :gender)
+          AND (:size IS NULL OR v.size = :size)
+          AND (:color IS NULL OR v.color = :color)
+          AND (
+              :categoryId IS NULL OR
+              c.id = :categoryId OR
+              (c.parent IS NOT NULL AND c.parent.id = :categoryId) OR
+              (c.parent.parent IS NOT NULL AND c.parent.parent.id = :categoryId)
+          )
+          AND (:word IS NULL OR :word = '' OR p.name LIKE CONCAT('%', :word, '%'))
+        ORDER BY p.createdAt DESC
+        """)
     Page<Product> searchProducts(
             @Param("gender") Gender gender,
             @Param("categoryId") Long categoryId,
