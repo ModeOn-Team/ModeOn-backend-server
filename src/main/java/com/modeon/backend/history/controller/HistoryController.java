@@ -3,6 +3,7 @@ package com.modeon.backend.history.controller;
 import com.modeon.backend.entity.User;
 import com.modeon.backend.history.dto.HistoryResponse;
 import com.modeon.backend.history.repository.HistoryRepository;
+import com.modeon.backend.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,8 @@ import java.util.List;
 public class HistoryController {
 
     private final HistoryRepository historyRepository;
+    private final ReviewRepository reviewRepository;
+
     @GetMapping
     public List<HistoryResponse> getMyHistoryList(@AuthenticationPrincipal User user) {
 
@@ -30,6 +33,15 @@ public class HistoryController {
                         imageUrl = h.getProduct().getDetailImages().get(0).getImageUrl();
                     }
 
+                    boolean hasReview = reviewRepository.existsByHistory_Id(h.getId());
+
+                    Long reviewId = null;
+                    if (hasReview) {
+                        reviewId = reviewRepository.findByHistory_Id(h.getId())
+                                .map(r -> r.getId())
+                                .orElse(null);
+                    }
+
                     return HistoryResponse.builder()
                             .id(h.getId())
                             .productName(h.getProduct().getName())
@@ -37,12 +49,12 @@ public class HistoryController {
                             .count(h.getCount())
                             .totalPrice(h.getTotalPrice())
                             .createdAt(h.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
+                            .hasReview(hasReview)
+                            .reviewId(reviewId)
                             .build();
                 })
                 .toList();
     }
-
-
 
     @GetMapping("/{historyId}")
     public HistoryResponse getHistoryDetail(
@@ -52,10 +64,10 @@ public class HistoryController {
         var h = historyRepository.findById(historyId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 기록을 찾을 수 없습니다."));
 
+
         if (h.getUser().getId() != user.getId()) {
             throw new IllegalArgumentException("본인의 구매내역만 조회할 수 있습니다.");
         }
-
 
         String imageUrl = null;
         if (h.getProduct().getDetailImages() != null && !h.getProduct().getDetailImages().isEmpty()) {
@@ -68,7 +80,7 @@ public class HistoryController {
                 .productImage(imageUrl)
                 .count(h.getCount())
                 .totalPrice(h.getTotalPrice())
-                .createdAt(h.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd")))
+                .createdAt(h.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                 .build();
     }
 }

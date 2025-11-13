@@ -12,4 +12,9 @@ public class HistoryResponse {
     private int count;
     private int totalPrice;
     private String createdAt;
+
+    private boolean hasReview;
+
+    private Long reviewId;
+
 }
