@@ -28,4 +28,23 @@ public class History {
     private int totalPrice;  // 총 가격
 
     private LocalDateTime createdAt;
+
+
+
+// PAID → PREPARING → SHIPPING → DELIVERED
+    @Column(nullable = false)
+    private String status = "PAID";
+
+    // 운송장 번호
+    private String trackingNumber;
+
+    // 택배사 코드
+    private String courierCode;
+
+    // 배송 시작 시간
+    private LocalDateTime shippedAt;
+
+    // 배송 완료 시간
+    private LocalDateTime deliveredAt;
+
 }

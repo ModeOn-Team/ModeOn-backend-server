@@ -51,7 +51,15 @@ public class HistoryController {
                             .createdAt(h.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                             .hasReview(hasReview)
                             .reviewId(reviewId)
+                            .status(h.getStatus())
+                            .trackingNumber(h.getTrackingNumber())
+                            .courierCode(h.getCourierCode())
+                            .shippedAt(h.getShippedAt() != null ? h.getShippedAt().toString() : null)
+                            .deliveredAt(h.getDeliveredAt() != null ? h.getDeliveredAt().toString() : null)
+                            .productId(h.getProduct().getId())
+
                             .build();
+
                 })
                 .toList();
     }
@@ -81,6 +89,13 @@ public class HistoryController {
                 .count(h.getCount())
                 .totalPrice(h.getTotalPrice())
                 .createdAt(h.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
+                .status(h.getStatus())
+                .trackingNumber(h.getTrackingNumber())
+                .courierCode(h.getCourierCode())
+                .shippedAt(h.getShippedAt() != null ? h.getShippedAt().toString() : null)
+                .deliveredAt(h.getDeliveredAt() != null ? h.getDeliveredAt().toString() : null)
+                .productId(h.getProduct().getId())
+
                 .build();
     }
 }

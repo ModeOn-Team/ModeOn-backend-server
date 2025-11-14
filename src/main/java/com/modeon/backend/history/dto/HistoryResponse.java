@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 public class HistoryResponse {
     private Long id;
+    private Long productId;
     private String productName;
     private String productImage;
     private int count;
@@ -16,5 +17,11 @@ public class HistoryResponse {
     private boolean hasReview;
 
     private Long reviewId;
+
+    private String status;
+    private String trackingNumber;
+    private String courierCode;
+    private String shippedAt;
+    private String deliveredAt;
 
 }
