@@ -24,4 +24,8 @@ public class HistoryResponse {
     private String shippedAt;
     private String deliveredAt;
 
+    private String requestStatus;
+
+    private String adminResponseReason;
+
 }

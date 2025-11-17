@@ -64,8 +64,10 @@ public class PaymentService {
                             .price(cart.getProduct().getPrice())
                             .totalPrice(cart.getProduct().getPrice() * cart.getCount())
                             .createdAt(LocalDateTime.now())
+                            .status("PAID")
                             .build()
             );
+            ;
         }
 
         // 장바구니 비우기

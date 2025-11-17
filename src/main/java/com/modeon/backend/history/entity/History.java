@@ -31,9 +31,10 @@ public class History {
 
 
 
-// PAID → PREPARING → SHIPPING → DELIVERED
+    @Builder.Default
     @Column(nullable = false)
     private String status = "PAID";
+
 
     // 운송장 번호
     private String trackingNumber;
@@ -46,5 +47,14 @@ public class History {
 
     // 배송 완료 시간
     private LocalDateTime deliveredAt;
+
+    // 교환/환불 요청 상태 (null, REFUND_REQUEST, EXCHANGE_REQUEST)
+    private String requestStatus;
+
+    // 교환/환불 사유
+    private String requestReason;
+
+    private String adminResponseReason;
+
 
 }

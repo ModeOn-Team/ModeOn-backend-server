@@ -10,5 +10,8 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
 
     List<History> findByUser_IdOrderByCreatedAtDesc(Long userId);
 
+    List<History> findByRequestStatusIn(List<String> statuses);
+
+
 }
 
