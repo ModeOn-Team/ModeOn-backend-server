@@ -1,10 +1,12 @@
-package com.modeon.backend.cart.entity;
+package com.modeon.backend.review.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.modeon.backend.entity.User;
 import com.modeon.backend.entity.Product;
+import com.modeon.backend.history.entity.History;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -12,22 +14,26 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
-public class Cart {
+public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    @JsonIgnore
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
 
+    @ManyToOne(fetch = FetchType.LAZY)
     private Product product;
 
-    private int count;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    private History history;
+
+    private int rating;
+    private String content;
+
+    private LocalDateTime createdAt;
 }

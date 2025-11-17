@@ -31,7 +31,7 @@ public class PaymentService {
 
     public void confirmPayment(User user, PaymentConfirmRequest request) {
 
-        // 서버에 승인 요청 보내야함
+        // 서버에 승인 요청 보내기
         WebClient.create("https://api.tosspayments.com/v1/payments/confirm")
                 .post()
                 .header("Authorization", "Basic " +
@@ -64,8 +64,10 @@ public class PaymentService {
                             .price(cart.getProduct().getPrice())
                             .totalPrice(cart.getProduct().getPrice() * cart.getCount())
                             .createdAt(LocalDateTime.now())
+                            .status("PAID")
                             .build()
             );
+            ;
         }
 
         // 장바구니 비우기

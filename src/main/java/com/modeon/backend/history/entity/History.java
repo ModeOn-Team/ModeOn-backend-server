@@ -23,9 +23,38 @@ public class History {
     @ManyToOne(fetch = FetchType.LAZY)
     private Product product;
 
-    private int count;       // 몇 개 샀는지
+    private int count;
     private int price;       // 개당 가격
     private int totalPrice;  // 총 가격
 
     private LocalDateTime createdAt;
+
+
+
+    @Builder.Default
+    @Column(nullable = false)
+    private String status = "PAID";
+
+
+    // 운송장 번호
+    private String trackingNumber;
+
+    // 택배사 코드
+    private String courierCode;
+
+    // 배송 시작 시간
+    private LocalDateTime shippedAt;
+
+    // 배송 완료 시간
+    private LocalDateTime deliveredAt;
+
+    // 교환/환불 요청 상태 (null, REFUND_REQUEST, EXCHANGE_REQUEST)
+    private String requestStatus;
+
+    // 교환/환불 사유
+    private String requestReason;
+
+    private String adminResponseReason;
+
+
 }
