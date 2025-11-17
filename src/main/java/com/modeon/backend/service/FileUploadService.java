@@ -14,13 +14,13 @@ import java.util.UUID;
 @Service
 public class FileUploadService {
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
-    private static final int IMAGE_SIZE = 1080;
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final int IMAGE_SIZE = 1080; // 썸네일 기준
 
-    // 0번 썸네일 처리
     public String uploadThumbnail(MultipartFile file, String folder) {
         validateFile(file);
-        String fileName = generateFileName(file, folder);
+        String format = getFormatName(file);
+        String fileName = generateFileName(file, folder, format);
 
         try {
             BufferedImage originalImage = ImageIO.read(file.getInputStream());
@@ -30,7 +30,8 @@ public class FileUploadService {
             BufferedImage resizedImage = resizeImage(squareImage, IMAGE_SIZE, IMAGE_SIZE);
 
             File outputFile = new File(fileName);
-            ImageIO.write(resizedImage, "jpg", outputFile);
+            createDirectoryIfNotExists(outputFile.getParentFile());
+            ImageIO.write(resizedImage, format, outputFile);
 
             return fileName;
         } catch (IOException e) {
@@ -38,17 +39,18 @@ public class FileUploadService {
         }
     }
 
-    // 나머지 원본 이미지 저장
     public String uploadOriginal(MultipartFile file, String folder) {
         validateFile(file);
-        String fileName = generateFileName(file, folder);
+        String format = getFormatName(file);
+        String fileName = generateFileName(file, folder, format);
 
         try {
             BufferedImage originalImage = ImageIO.read(file.getInputStream());
             if (originalImage == null) throw new BadRequestException("Invalid image file");
 
             File outputFile = new File(fileName);
-            ImageIO.write(originalImage, "jpg", outputFile);
+            createDirectoryIfNotExists(outputFile.getParentFile());
+            ImageIO.write(originalImage, format, outputFile);
 
             return fileName;
         } catch (IOException e) {
@@ -56,16 +58,46 @@ public class FileUploadService {
         }
     }
 
+    public void validateFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+//        if (file.getSize() > MAX_FILE_SIZE) {
+//            throw new IllegalArgumentException("File size exceeds 5MB");
+//        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Only image files are allowed");
+        }
+    }
+
+    private String getFormatName(MultipartFile file) {
+        String contentType = file.getContentType();
+        if ("image/webp".equals(contentType)) return "webp";
+        return "jpg"; // JPG/PNG 등
+    }
+
+    private String generateFileName(MultipartFile file, String folder, String format) {
+        return "uploads/" + folder + "/" + UUID.randomUUID().toString() + "." + format;
+    }
+
+    private void createDirectoryIfNotExists(File directory) {
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (!created) {
+                throw new RuntimeException("Failed to create directory: " + directory.getAbsolutePath());
+            }
+        }
+    }
 
     private BufferedImage cropToSquare(BufferedImage image) {
         int width = image.getWidth();
         int height = image.getHeight();
-
         int squareSize = Math.min(width, height);
-
         int x = (width - squareSize) / 2;
         int y = (height - squareSize) / 2;
-
         return image.getSubimage(x, y, squareSize, squareSize);
     }
 
@@ -81,24 +113,5 @@ public class FileUploadService {
         graphics2D.dispose();
 
         return resizedImage;
-    }
-
-    public void validateFile(MultipartFile file){
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
-        }
-
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("File size exceeds 5MB");
-        }
-
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IllegalArgumentException("Only image files are allowed");
-        }
-    }
-
-    private String generateFileName(MultipartFile file, String folder) {
-        return "uploads/" + folder + "/" + UUID.randomUUID().toString() + ".jpg";
     }
 }

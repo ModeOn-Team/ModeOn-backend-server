@@ -1,6 +1,7 @@
 package com.modeon.backend.cart.service;
 
 import com.modeon.backend.cart.dto.CartItemRequest;
+import com.modeon.backend.cart.dto.CartItemResponse;
 import com.modeon.backend.cart.entity.Cart;
 import com.modeon.backend.cart.repository.CartRepository;
 import com.modeon.backend.entity.User;
@@ -9,9 +10,10 @@ import com.modeon.backend.repository.ProductRepository;
 import com.modeon.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class CartService {
@@ -46,9 +48,25 @@ public class CartService {
         }
     }
 
-    public List<Cart> getCartItems(Long userId) {
-        return cartRepository.findByUserId(userId);
+    public List<CartItemResponse> getCart(Long userId) {
+        List<Cart> carts = cartRepository.findByUserId(userId);
+
+        return carts.stream()
+                .map(cart -> CartItemResponse.builder()
+                        .id(cart.getId())
+                        .count(cart.getCount())
+                        .productId(cart.getProduct().getId())
+                        .productName(cart.getProduct().getName())
+                        .productPrice(cart.getProduct().getPrice())
+                        .productImage(
+                                cart.getProduct().getDetailImages().isEmpty()
+                                        ? null
+                                        : cart.getProduct().getDetailImages().get(0).getImageUrl()
+                        )
+                        .build()
+                ).toList();
     }
+
 
     public void updateCount(Long userId, Long productId, int count) {
         Cart cart = cartRepository.findByUserIdAndProductId(userId, productId)
@@ -57,18 +75,13 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    //추가 ( 장바구니 전체 삭제)
-    public void clearCart(Long userId) {
-        List<Cart> carts = cartRepository.findByUserId(userId);
 
-        if (carts.isEmpty()) {
-            throw new IllegalArgumentException("장바구니가 이미 비어있습니다.");
+
+    public void removeItemByCartId(Long userId, Long cartId) {
+        int deleted = cartRepository.deleteByIdAndUserId(cartId, userId);
+        if (deleted == 0) {
+            throw new IllegalArgumentException("삭제할 항목이 없습니다.");
         }
-
-        cartRepository.deleteAll(carts);
     }
 
-    public void removeItem(Long userId, Long productId) {
-        cartRepository.deleteByUserIdAndProductId(userId, productId);
-    }
 }

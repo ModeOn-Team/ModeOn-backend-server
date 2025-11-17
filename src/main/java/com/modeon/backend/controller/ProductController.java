@@ -8,6 +8,7 @@ import com.modeon.backend.entity.Size;
 import com.modeon.backend.service.AuthService;
 import com.modeon.backend.service.CategoryService;
 import com.modeon.backend.service.ProductService;
+import com.modeon.backend.service.WishListService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/product")
@@ -23,6 +25,7 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
     private final CategoryService categoryService;
+    private final WishListService wishListService;
 
     @GetMapping("/categories")
     public List<CategoryResponse> getAllCategories() {
@@ -44,6 +47,25 @@ public class ProductController {
             @PathVariable Long productId
     ){
         ProductResponse products = productService.getProductDetail(productId);
+        return ResponseEntity.ok(products);
+    }
+
+    @PostMapping("/{productId}/wishlist")
+    public ResponseEntity<?> toggleWishList(@PathVariable Long productId){
+        boolean isWishList = wishListService.toggleWishList(productId);
+
+        return ResponseEntity.ok().body(Map.of(
+                "isWishList", isWishList
+        ));
+    }
+
+    @GetMapping("/wishlist")
+    public ResponseEntity<Page<ProductResponse>> getMyWishList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductResponse> products = productService.getMyWishList(pageable);
         return ResponseEntity.ok(products);
     }
 

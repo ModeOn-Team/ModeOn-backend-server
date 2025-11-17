@@ -50,6 +50,9 @@ dependencies {
 	// Email
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
+	// ImageIO
+	implementation 'org.sejda.imageio:webp-imageio:0.1.6'
+
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
