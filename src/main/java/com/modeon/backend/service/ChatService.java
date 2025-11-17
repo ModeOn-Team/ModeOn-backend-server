@@ -127,6 +127,22 @@ public class ChatService {
     }
 
     /**
+     * 채팅방 정보 조회
+     */
+    public ChatRoomDto getChatRoom(Long roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findByRoomIdAndIsActiveTrue(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방입니다."));
+
+        ChatRoomDto dto = ChatRoomDto.from(chatRoom);
+        // 사용자 정보 조회 및 매핑
+        if (chatRoom.getUserId() != null) {
+            userRepository.findById(chatRoom.getUserId())
+                    .ifPresent(user -> dto.setOtherUser(UserDto.fromEntity(user)));
+        }
+        return dto;
+    }
+
+    /**
      * 채팅방 존재 여부 확인
      */
     public boolean existsRoom(Long roomId) {
