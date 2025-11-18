@@ -35,9 +35,9 @@ public class ChatController {
     private final AuthenticationService authenticationService;
 
     /**
-     * 채팅방 접속 및 생성 (REST API)
-     * POST /api/chating/join
-     * 인증된 사용자만 자신의 채팅방에 접근 가능
+     채팅방 접속 및 생성 (REST API)
+     POST /api/chating/join
+     인증된 사용자만 자신의 채팅방에 접근 가능
      */
     @PostMapping("/join")
     public ResponseEntity<ChatRoomDto> joinChatRoom(
@@ -52,9 +52,9 @@ public class ChatController {
     }
 
     /**
-     * WebSocket을 통한 메시지 전송
-     * STOMP destination: /pub/chat.sendMessage
-     * WebSocket 연결 시 인증된 사용자만 메시지 전송 가능
+     WebSocket을 통한 메시지 전송
+     STOMP destination: /pub/chat.sendMessage
+     WebSocket 연결 시 인증된 사용자만 메시지 전송 가능
      */
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessageDto chatMessageDto, 
@@ -95,9 +95,9 @@ public class ChatController {
     }
 
     /**
-     * 텍스트 메시지 전송 (REST API)
-     * POST /api/chating/message/text
-     * 인증된 사용자만 메시지 전송 가능
+     텍스트 메시지 전송 (REST API)
+     POST /api/chating/message/text
+     인증된 사용자만 메시지 전송 가능
      */
     @PostMapping("/message/text")
     public ResponseEntity<ChatMessageDto> sendTextMessage(
@@ -129,9 +129,9 @@ public class ChatController {
     }
 
     /**
-     * 이미지 메시지 전송 (REST API)
-     * POST /api/chating/message/image
-     * metadata에 이미지 관련 정보 (파일명, 크기 등) JSON 형태로 전달 가능
+     이미지 메시지 전송 (REST API)
+     POST /api/chating/message/image
+     metadata에 이미지 관련 정보 (파일명, 크기 등) JSON 형태로 전달 가능
      */
     @PostMapping("/message/image")
     public ResponseEntity<ChatMessageDto> sendImageMessage(
@@ -159,9 +159,9 @@ public class ChatController {
     }
 
     /**
-     * 파일 메시지 전송 (REST API)
-     * POST /api/chating/message/file
-     * metadata에 파일 관련 정보 (파일명, 크기, 확장자 등) JSON 형태로 전달 가능
+     파일 메시지 전송 (REST API)
+     POST /api/chating/message/file
+     metadata에 파일 관련 정보 (파일명, 크기, 확장자 등) JSON 형태로 전달 가능
      */
     @PostMapping("/message/file")
     public ResponseEntity<ChatMessageDto> sendFileMessage(
@@ -189,8 +189,94 @@ public class ChatController {
     }
 
     /**
-     * 관리자 채팅 목록 조회
-     * GET /api/chating/admin 또는 GET /api/chating/admin/
+     배송문의 안내 메시지 전송 (REST API)
+     POST /api/chating/message/delivery-inquiry
+     배송문의 버튼 클릭 시 자동으로 안내 메시지 전송
+     */
+    @PostMapping("/message/delivery-inquiry")
+    public ResponseEntity<ChatMessageDto> sendDeliveryInquiryMessage(
+            @RequestParam Long roomId,
+            @AuthenticationPrincipal User currentUser) {
+        log.info("배송문의 안내 메시지 요청: roomId={}, userId={}", roomId, currentUser != null ? currentUser.getId() : "null");
+        
+        // 채팅방 접근 권한 확인
+        validateChatRoomAccess(roomId, currentUser);
+        
+        // 배송 안내 메시지 내용
+        String deliveryMessage = "안녕하세요 ModeOn입니다:)\n\n" +
+                "고객님께서 주문하시는 제품은 모두 주문 후 거래처 발주 후 입고되어 발송되는 오더 형식입니다.\n\n" +
+                "주문 후 출고까지는 평균 2-3일 소요되며, 입고지연 제품의 경우 따로 사이트 게시판을 통해 입고 예정일을 공지하고 있습니다.";
+        
+        // 채팅방 정보 조회하여 adminId 확인
+        ChatRoomDto room = chatService.getChatRoom(roomId);
+        Long adminId = room.getAdminId();
+        
+        // 시스템 메시지로 전송 (ADMIN 발신자로 설정, 시스템 메시지는 발신자 검증 건너뜀)
+        ChatMessageDto systemMessage = ChatMessageDto.builder()
+                .roomId(roomId)
+                .sender("ADMIN")
+                .message(deliveryMessage)
+                .messageType("SYSTEM")
+                .metadata(null)
+                .userId(null)
+                .adminId(adminId)  // 채팅방에 할당된 관리자 ID, 없으면 null
+                .build();
+        
+        // DB 저장 (시스템 메시지는 발신자 검증 없이 저장)
+        ChatMessageDto savedMessage = chatService.saveMessage(systemMessage);
+        
+        // Redis 발행
+        publishToRedis(savedMessage);
+        
+        return ResponseEntity.ok(savedMessage);
+    }
+
+    /**
+     교환/반품 안내 메시지 전송 (REST API)
+     POST /api/chating/message/exchange-return
+     교환/반품 버튼 클릭 시 자동으로 안내 메시지 전송
+     */
+    @PostMapping("/message/exchange-return")
+    public ResponseEntity<ChatMessageDto> sendExchangeReturnMessage(
+            @RequestParam Long roomId,
+            @AuthenticationPrincipal User currentUser) {
+        // 채팅방 접근 권한 확인
+        validateChatRoomAccess(roomId, currentUser);
+        
+        // 교환/반품 안내 메시지 내용
+        String exchangeReturnMessage = "교환 및 반품은 상품 수령일로부터 7일 이내로 접수 해주셔야 합니다:)\n\n" +
+                "1. 사이트 주문내역 통해 교환/반품 신청\n" +
+                "2. 기사님 방문회수 진행\n" +
+                "3. 수거상품 자사 도착 후 처리\n\n" +
+                "-네이버페이 통한 주문의 경우 자사 주문내역이 아닌 네이버 페이 주문내역 통해 접수 진행 해주셔야 합니다!";
+        
+        // 채팅방 정보 조회하여 adminId 확인
+        ChatRoomDto room = chatService.getChatRoom(roomId);
+        Long adminId = room.getAdminId();
+        
+        // 시스템 메시지로 전송 (ADMIN 발신자로 설정, 시스템 메시지는 발신자 검증 건너뜀)
+        ChatMessageDto systemMessage = ChatMessageDto.builder()
+                .roomId(roomId)
+                .sender("ADMIN")
+                .message(exchangeReturnMessage)
+                .messageType("SYSTEM")
+                .metadata(null)
+                .userId(null)
+                .adminId(adminId)  // 채팅방에 할당된 관리자 ID, 없으면 null
+                .build();
+        
+        // DB 저장 (시스템 메시지는 발신자 검증 없이 저장)
+        ChatMessageDto savedMessage = chatService.saveMessage(systemMessage);
+        
+        // Redis 발행
+        publishToRedis(savedMessage);
+        
+        return ResponseEntity.ok(savedMessage);
+    }
+
+    /**
+     관리자 채팅 목록 조회
+     GET /api/chating/admin 또는 GET /api/chating/admin/
      */
     @GetMapping({"/admin", "/admin/"})
     public ResponseEntity<List<ChatRoomDto>> getAdminChatRooms(@RequestParam(required = false) Long adminId) {
@@ -204,8 +290,8 @@ public class ChatController {
     }
 
     /**
-     * 채팅방 정보 조회
-     * GET /api/chating/room?roomId={roomId}
+     채팅방 정보 조회
+     GET /api/chating/room?roomId={roomId}
      */
     @GetMapping("/room")
     public ResponseEntity<ChatRoomDto> getChatRoom(
@@ -226,9 +312,9 @@ public class ChatController {
     }
 
     /**
-     * 채팅방의 메시지 목록 조회
-     * GET /api/chating/messages?roomId={roomId}
-     * 인증된 사용자만 자신의 채팅방 메시지를 조회 가능
+     채팅방의 메시지 목록 조회
+     GET /api/chating/messages?roomId={roomId}
+     인증된 사용자만 자신의 채팅방 메시지를 조회 가능
      */
     @GetMapping("/messages")
     public ResponseEntity<List<ChatMessageDto>> getChatMessages(
@@ -250,7 +336,7 @@ public class ChatController {
     }
 
     /**
-     * 채팅방 접근 권한 검증
+     채팅방 접근 권한 검증
      */
     private void validateChatRoomAccess(Long roomId, User currentUser) {
         ChatRoomDto room = chatService.getChatRoom(roomId);
@@ -265,7 +351,7 @@ public class ChatController {
     }
 
     /**
-     * 메시지 발신자 검증
+     메시지 발신자 검증
      */
     private void validateMessageSender(ChatMessageDto chatMessageDto, User currentUser) {
         boolean isAdmin = currentUser.getRole() != null && currentUser.getRole().equalsIgnoreCase("ROLE_ADMIN");
@@ -298,7 +384,7 @@ public class ChatController {
     }
 
     /**
-     * Redis에 메시지 발행
+     Redis에 메시지 발행
      */
     private void publishToRedis(ChatMessageDto chatMessage) {
         try {
