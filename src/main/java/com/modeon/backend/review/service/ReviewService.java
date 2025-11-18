@@ -1,5 +1,7 @@
 package com.modeon.backend.review.service;
 
+import com.modeon.backend.dto.ProductResponse;
+import com.modeon.backend.entity.Product;
 import com.modeon.backend.entity.User;
 import com.modeon.backend.history.entity.History;
 import com.modeon.backend.history.repository.HistoryRepository;
@@ -7,7 +9,10 @@ import com.modeon.backend.review.dto.ReviewRequest;
 import com.modeon.backend.review.dto.ReviewResponse;
 import com.modeon.backend.review.entity.Review;
 import com.modeon.backend.review.repository.ReviewRepository;
+import com.modeon.backend.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +28,8 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final HistoryRepository historyRepository;
+    private final AuthenticationService authenticationService;
+
     @Transactional(readOnly = true)
     public ReviewResponse getReviewById(User user, Long reviewId) {
 
@@ -45,6 +52,21 @@ public class ReviewService {
                 .build();
     }
 
+    public Page<ReviewResponse> getAllReviews(Pageable pageable) {
+        User currentUser = authenticationService.getCurrentUser();
+        Page<Review> reviews = reviewRepository.findAll(pageable);
+
+        return reviews.map(review ->
+                ReviewResponse.builder()
+                        .id(review.getId())
+                        .userName(currentUser.getUsername())
+                        .productName(review.getProduct().getName())
+                        .rating(review.getRating())
+                        .content(review.getContent())
+                        .createdAt(String.valueOf(review.getCreatedAt()))
+                        .build()
+        );
+    }
 
     public void writeReview(User user, Long historyId, ReviewRequest request) {
 
