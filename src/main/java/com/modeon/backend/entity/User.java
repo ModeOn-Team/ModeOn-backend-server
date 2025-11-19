@@ -60,7 +60,10 @@ public class User implements UserDetails {
             this.role = "ROLE_USER";
         }
 
-        this.enabled = this.role.equals("ROLE_ADMIN");
+        // enabled가 명시적으로 설정되지 않은 경우에만 role 기반으로 설정
+        if (!this.enabled) {
+            this.enabled = this.role.equals("ROLE_ADMIN");
+        }
     }
 
     @Column(nullable = false)

@@ -6,7 +6,9 @@ import com.modeon.backend.cart.entity.Cart;
 import com.modeon.backend.cart.repository.CartRepository;
 import com.modeon.backend.entity.User;
 import com.modeon.backend.entity.Product;
+import com.modeon.backend.entity.ProductVariant;
 import com.modeon.backend.repository.ProductRepository;
+import com.modeon.backend.repository.ProductVariantRepository;
 import com.modeon.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,17 +22,25 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
     private final UserRepository userRepository;
 
     public void addItem(Long userId, CartItemRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+        ProductVariant variant = productVariantRepository.findById(request.getVariantId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품 옵션입니다."));
 
-        // 기존 장바구니에 같은 상품이 있는지 확인
-        Cart existingCart = cartRepository.findByUserIdAndProductId(userId, request.getProductId())
+        Product product = variant.getProduct();
+
+        // 재고 확인
+        if (variant.getStock() < request.getCount()) {
+            throw new IllegalArgumentException("재고가 부족합니다. (현재 재고: " + variant.getStock() + ")");
+        }
+
+        // 기존 장바구니에 같은 variant가 있는지 확인
+        Cart existingCart = cartRepository.findByUserIdAndVariantId(userId, request.getVariantId())
                 .orElse(null);
 
         if (existingCart == null) {
@@ -38,12 +48,17 @@ public class CartService {
             Cart newCart = Cart.builder()
                     .user(user)
                     .product(product)
+                    .variant(variant)
                     .count(request.getCount())
                     .build();
             cartRepository.save(newCart);
         } else {
-            // 기존 상품 수량 누적
-            existingCart.setCount(existingCart.getCount() + request.getCount());
+            // 기존 상품 수량 누적 (재고 재확인)
+            int newCount = existingCart.getCount() + request.getCount();
+            if (variant.getStock() < newCount) {
+                throw new IllegalArgumentException("재고가 부족합니다. (현재 재고: " + variant.getStock() + ")");
+            }
+            existingCart.setCount(newCount);
             cartRepository.save(existingCart);
         }
     }
@@ -63,6 +78,10 @@ public class CartService {
                                         ? null
                                         : cart.getProduct().getDetailImages().get(0).getImageUrl()
                         )
+                        .variantId(cart.getVariant() != null ? cart.getVariant().getId() : null)
+                        .size(cart.getVariant() != null ? cart.getVariant().getSize().name() : null)
+                        .color(cart.getVariant() != null ? cart.getVariant().getColor().name() : null)
+                        .stock(cart.getVariant() != null ? cart.getVariant().getStock() : null)
                         .build()
                 ).toList();
     }
