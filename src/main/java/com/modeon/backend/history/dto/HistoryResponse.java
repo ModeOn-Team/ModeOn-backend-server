@@ -23,7 +23,8 @@ public class HistoryResponse {
     private String courierCode;
     private String shippedAt;
     private String deliveredAt;
-
+    private String size;
+    private String color;
     private String requestStatus;
 
     private String adminResponseReason;

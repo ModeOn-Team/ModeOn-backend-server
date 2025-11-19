@@ -64,6 +64,8 @@ public class HistoryController {
                             .productId(h.getProduct().getId())
                             .requestStatus(h.getRequestStatus())
                             .adminResponseReason(h.getAdminResponseReason())
+                            .size(h.getSize())
+                            .color(h.getColor())
 
                             .build();
 
@@ -102,6 +104,8 @@ public class HistoryController {
                         .courierCode(h.getCourierCode())
                         .shippedAt(h.getShippedAt() != null ? h.getShippedAt().format(dtf) : null)
                         .deliveredAt(h.getDeliveredAt() != null ? h.getDeliveredAt().format(dtf) : null)
+                        .size(h.getSize())
+                        .color(h.getColor())
                         .requestStatus(h.getRequestStatus())
                         .productId(h.getProduct().getId())
                         .adminResponseReason(h.getAdminResponseReason())

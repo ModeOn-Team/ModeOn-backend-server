@@ -26,6 +26,8 @@ public class History {
     private int count;
     private int price;       // 개당 가격
     private int totalPrice;  // 총 가격
+    private String size;
+    private String color;
 
     private LocalDateTime createdAt;
 

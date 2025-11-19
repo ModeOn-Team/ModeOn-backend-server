@@ -63,11 +63,13 @@ public class PaymentService {
                             .count(cart.getCount())
                             .price(cart.getProduct().getPrice())
                             .totalPrice(cart.getProduct().getPrice() * cart.getCount())
+                            .size(cart.getSize())
+                            .color(cart.getColor())
                             .createdAt(LocalDateTime.now())
                             .status("PAID")
                             .build()
             );
-            ;
+
         }
 
         // 장바구니 비우기
