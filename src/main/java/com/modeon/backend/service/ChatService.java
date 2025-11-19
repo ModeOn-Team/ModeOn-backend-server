@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,19 +30,29 @@ public class ChatService {
     /**
      * 사용자의 채팅방 조회 또는 생성
      * 최초 접속 시 채팅방 자동 생성
+     * ID는 @GeneratedValue(strategy = GenerationType.IDENTITY)로 자동 순차 생성됨
      */
     @Transactional
     public ChatRoomDto getOrCreateChatRoom(Long userId) {
-        ChatRoom chatRoom = chatRoomRepository.findFirstByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userId)
-                .orElseGet(() -> {
-                    ChatRoom newRoom = ChatRoom.builder()
-                            .userId(userId)
-                            .isActive(true)
-                            .build();
-                    return chatRoomRepository.save(newRoom);
-                });
+        // 기존 활성 채팅방 조회
+        Optional<ChatRoom> existingRoom = chatRoomRepository.findFirstByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userId);
         
-        return ChatRoomDto.from(chatRoom);
+        if (existingRoom.isPresent()) {
+            ChatRoom room = existingRoom.get();
+            log.info("기존 채팅방 반환: roomId={}, userId={}", room.getRoomId(), userId);
+            return ChatRoomDto.from(room);
+        }
+        
+        // 새로운 채팅방 생성 (ID는 데이터베이스 AUTO_INCREMENT로 자동 순차 생성)
+        ChatRoom newRoom = ChatRoom.builder()
+                .userId(userId)
+                .isActive(true)
+                .build();
+        
+        ChatRoom savedRoom = chatRoomRepository.save(newRoom);
+        log.info("새 채팅방 생성: roomId={}, userId={}", savedRoom.getRoomId(), userId);
+        
+        return ChatRoomDto.from(savedRoom);
     }
 
     /**
@@ -127,9 +138,26 @@ public class ChatService {
     }
 
     /**
+     * 채팅방 정보 조회
+     */
+    public ChatRoomDto getChatRoom(Long roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findByRoomIdAndIsActiveTrue(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방입니다."));
+
+        ChatRoomDto dto = ChatRoomDto.from(chatRoom);
+        // 사용자 정보 조회 및 매핑
+        if (chatRoom.getUserId() != null) {
+            userRepository.findById(chatRoom.getUserId())
+                    .ifPresent(user -> dto.setOtherUser(UserDto.fromEntity(user)));
+        }
+        return dto;
+    }
+
+    /**
      * 채팅방 존재 여부 확인
      */
     public boolean existsRoom(Long roomId) {
         return chatRoomRepository.findByRoomIdAndIsActiveTrue(roomId).isPresent();
     }
+
 }

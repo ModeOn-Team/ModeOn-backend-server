@@ -232,8 +232,22 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         String sessionId = accessor.getSessionId();
         String destination = accessor.getDestination();
         String userId = accessor.getUser() != null ? accessor.getUser().getName() : "unknown";
-        log.info("WebSocket 구독: sessionId={}, userId={}, destination={}", 
-                sessionId, userId, destination);
+        
+        // 채팅방 구독 시 destination에서 roomId 추출하여 권한 확인
+        if (destination != null && destination.startsWith("/sub/chatroom/")) {
+            try {
+                String roomIdStr = destination.replace("/sub/chatroom/", "");
+                Long roomId = Long.parseLong(roomIdStr);
+                // 여기서는 로깅만 하고, 실제 권한 검증은 메시지 전송 시 수행
+                log.info("WebSocket 구독: sessionId={}, userId={}, destination={}, roomId={}", 
+                        sessionId, userId, destination, roomId);
+            } catch (NumberFormatException e) {
+                log.warn("유효하지 않은 채팅방 ID: {}", destination);
+            }
+        } else {
+            log.info("WebSocket 구독: sessionId={}, userId={}, destination={}", 
+                    sessionId, userId, destination);
+        }
     }
 
     @EventListener
