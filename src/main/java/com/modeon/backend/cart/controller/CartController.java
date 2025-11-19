@@ -18,7 +18,6 @@ import java.util.List;
 public class CartController {
     private final CartService cartService;
 
-    //추가   /api/cart/{userId}
     @PostMapping
     public ResponseEntity<String> addItem(
             @AuthenticationPrincipal User user,
@@ -29,6 +28,7 @@ public class CartController {
     }
 
 
+
     @GetMapping
     public ResponseEntity<List<CartItemResponse>> getCartItems(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(cartService.getCart(user.getId()));
@@ -37,15 +37,16 @@ public class CartController {
 
 
     //수정   /api/cart/{userId}/{productId}
-    @PatchMapping("/{productId}")
+    @PatchMapping("/item/{cartId}")
     public ResponseEntity<String> updateCount(
             @AuthenticationPrincipal User user,
-            @PathVariable Long productId,
+            @PathVariable Long cartId,
             @RequestParam int count
     ) {
-        cartService.updateCount(user.getId(), productId, count);
-        return ResponseEntity.ok("상품 수량이 수정되었습니다. ");
+        cartService.updateCount(user.getId(), cartId, count);
+        return ResponseEntity.ok("상품 수량이 수정되었습니다.");
     }
+
 
     //삭제
     @DeleteMapping("/item/{cartId}")

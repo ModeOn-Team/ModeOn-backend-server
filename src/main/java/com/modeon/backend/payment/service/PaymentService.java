@@ -12,6 +12,7 @@ import com.modeon.backend.service.MembershipService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -33,17 +34,26 @@ public class PaymentService {
     @Value("${toss.secret-key}")
     private String secretKey;
 
+    @Transactional
     public void confirmPayment(User user, PaymentConfirmRequest request) {
+        // 중복 결제 방지
+        if (paymentRepository.existsByOrderId(request.getOrderId())) {
+            throw new RuntimeException("이미 처리된 주문입니다.");
+        }
 
-        // Toss 결제 승인 요청
-        WebClient.create("https://api.tosspayments.com/v1/payments/confirm")
-                .post()
-                .header("Authorization", "Basic " +
-                        Base64.getEncoder().encodeToString((secretKey + ":").getBytes()))
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
+        // Toss Payments API 호출
+        try {
+            WebClient.create("https://api.tosspayments.com/v1/payments/confirm")
+                    .post()
+                    .header("Authorization", "Basic " +
+                            Base64.getEncoder().encodeToString((secretKey + ":").getBytes()))
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("결제 승인 요청 실패: Toss Payments API 오류", e);
+        }
 
         // Payment 저장
         Payment payment = Payment.builder()
@@ -55,9 +65,8 @@ public class PaymentService {
                 .build();
         paymentRepository.save(payment);
 
-        // 장바구니 가져오기
+        // 장바구니 아이템을 주문 내역으로 이동
         List<Cart> cartItems = cartRepository.findByUserId(user.getId());
-
         int totalOrderAmount = 0;
 
         // History 저장

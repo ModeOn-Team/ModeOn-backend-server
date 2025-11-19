@@ -33,4 +33,7 @@ public class Cart {
     private ProductVariant variant;
 
     private int count;
+
+    private String size;
+    private String color;
 }
