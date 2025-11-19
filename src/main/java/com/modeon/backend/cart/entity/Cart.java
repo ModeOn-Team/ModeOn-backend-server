@@ -30,4 +30,7 @@ public class Cart {
     private Product product;
 
     private int count;
+
+    private String size;
+    private String color;
 }

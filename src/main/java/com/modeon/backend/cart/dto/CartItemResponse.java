@@ -12,4 +12,7 @@ public class CartItemResponse {
     private String productName;
     private int productPrice;
     private String productImage;
+
+    private String size;
+    private String color;
 }
