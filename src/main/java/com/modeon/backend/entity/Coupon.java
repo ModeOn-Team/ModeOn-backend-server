@@ -31,14 +31,15 @@ public class Coupon {
     private int value;
 
     @Column(name = "min_purchase_amount")
-    private Integer minPurchaseAmount; // 얼마 이상 구매 시 쿠폰 적용 가능한 최소 금액
+    private Integer minPurchaseAmount;
 
     @Column(name = "is_used", nullable = false)
-    private boolean isUsed = false; // 쿠폰 사용 여부
+    private boolean isUsed = false;
 
     @Column(name = "issued_at", updatable = false)
     private LocalDateTime issuedAt = LocalDateTime.now();
 
     @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt;   // 쿠폰 사용 기간 만료일
+    private LocalDateTime expiresAt;
 }
+

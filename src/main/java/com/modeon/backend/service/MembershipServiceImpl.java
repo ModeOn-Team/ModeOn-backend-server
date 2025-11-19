@@ -2,6 +2,7 @@ package com.modeon.backend.service;
 
 import com.modeon.backend.entity.MembershipLevel;
 import com.modeon.backend.entity.User;
+import com.modeon.backend.history.repository.HistoryRepository;
 import com.modeon.backend.repository.OrderRepository;
 import com.modeon.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class MembershipServiceImpl implements MembershipService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final CouponService couponService;
+    private final HistoryRepository historyRepository;
 
     private static final int PERIOD_MONTHS = 12; // 멤버쉽 등급 기준 기간
 
@@ -32,7 +34,7 @@ public class MembershipServiceImpl implements MembershipService {
         LocalDateTime endDate = LocalDateTime.now();
         LocalDateTime startDate = endDate.minusMonths(PERIOD_MONTHS);
 
-        Long totalAmountLong = orderRepository.calculateTotalPurchaseAmount(userId, startDate, endDate);
+        Long totalAmountLong = historyRepository.calculateTotalPurchaseAmount(userId, startDate, endDate);
         int totalAmount = totalAmountLong != null ? totalAmountLong.intValue() : 0;
 
         // 새로운 등급을 부여받을지 판단
