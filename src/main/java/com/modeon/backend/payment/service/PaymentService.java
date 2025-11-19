@@ -11,6 +11,7 @@ import com.modeon.backend.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -29,19 +30,28 @@ public class PaymentService {
     @Value("${toss.secret-key}")
     private String secretKey;
 
+    @Transactional
     public void confirmPayment(User user, PaymentConfirmRequest request) {
+        // 중복 결제 방지
+        if (paymentRepository.existsByOrderId(request.getOrderId())) {
+            throw new RuntimeException("이미 처리된 주문입니다.");
+        }
 
-        // 서버에 승인 요청 보내기
-        WebClient.create("https://api.tosspayments.com/v1/payments/confirm")
-                .post()
-                .header("Authorization", "Basic " +
-                        Base64.getEncoder().encodeToString((secretKey + ":").getBytes()))
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
+        // Toss Payments API 호출
+        try {
+            WebClient.create("https://api.tosspayments.com/v1/payments/confirm")
+                    .post()
+                    .header("Authorization", "Basic " +
+                            Base64.getEncoder().encodeToString((secretKey + ":").getBytes()))
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("결제 승인 요청 실패: Toss Payments API 오류", e);
+        }
 
-        //  Payment 저장
+        // Payment 저장
         Payment payment = Payment.builder()
                 .user(user)
                 .paymentKey(request.getPaymentKey())
@@ -51,10 +61,8 @@ public class PaymentService {
                 .build();
         paymentRepository.save(payment);
 
-        // 장바구니 가져오기
+        // 장바구니 아이템을 주문 내역으로 이동
         List<Cart> cartItems = cartRepository.findByUserId(user.getId());
-
-        // 주문 내역(History)로 옮기기
         for (Cart cart : cartItems) {
             historyRepository.save(
                     History.builder()
@@ -63,13 +71,10 @@ public class PaymentService {
                             .count(cart.getCount())
                             .price(cart.getProduct().getPrice())
                             .totalPrice(cart.getProduct().getPrice() * cart.getCount())
-                            .size(cart.getSize())
-                            .color(cart.getColor())
                             .createdAt(LocalDateTime.now())
                             .status("PAID")
                             .build()
             );
-
         }
 
         // 장바구니 비우기

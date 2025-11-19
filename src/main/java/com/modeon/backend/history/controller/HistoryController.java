@@ -12,11 +12,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -66,7 +66,6 @@ public class HistoryController {
                             .adminResponseReason(h.getAdminResponseReason())
                             .size(h.getSize())
                             .color(h.getColor())
-
                             .build();
 
                 })
@@ -109,17 +108,19 @@ public class HistoryController {
                         .requestStatus(h.getRequestStatus())
                         .productId(h.getProduct().getId())
                         .adminResponseReason(h.getAdminResponseReason())
-
                         .build()
         );
     }
+
+
 
     /* 환불 요청 */
     @PostMapping("/{historyId}/refund")
     public ResponseEntity<String> requestRefund(
             @AuthenticationPrincipal User user,
             @PathVariable Long historyId,
-            @RequestBody RefundRequest refundRequest
+            @RequestPart("reason") String reason,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images   // 🔥 추가됨
     ) {
         History h = historyRepository.findById(historyId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 기록을 찾을 수 없습니다."));
@@ -129,26 +130,28 @@ public class HistoryController {
                     .body("본인의 구매내역만 조회/요청할 수 있습니다.");
         }
 
-        // 배송 완료 상태에서만 환불 가능
         if (!h.getStatus().equals("DELIVERED")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("배송 완료된 상태에서만 환불이 가능합니다.");
         }
 
         h.setRequestStatus("REFUND_REQUEST");
-        h.setRequestReason(refundRequest.getReason());
+        h.setRequestReason(reason);
+
 
         historyRepository.save(h);
 
         return ResponseEntity.ok("환불 요청이 완료되었습니다.");
     }
 
+
     /* 교환 요청 */
     @PostMapping("/{historyId}/exchange")
     public ResponseEntity<String> requestExchange(
             @AuthenticationPrincipal User user,
             @PathVariable Long historyId,
-            @RequestBody ExchangeRequest exchangeRequest
+            @RequestPart("reason") String reason,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images  // 🔥 추가됨
     ) {
         History h = historyRepository.findById(historyId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 기록을 찾을 수 없습니다."));
@@ -158,14 +161,15 @@ public class HistoryController {
                     .body("본인의 구매내역만 조회/요청할 수 있습니다.");
         }
 
-        // 배송 완료 상태에서만 교환 가능
         if (!h.getStatus().equals("DELIVERED")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("배송 완료된 상태에서만 교환이 가능합니다.");
         }
 
         h.setRequestStatus("EXCHANGE_REQUEST");
-        h.setRequestReason(exchangeRequest.getReason());
+        h.setRequestReason(reason);
+
+
 
         historyRepository.save(h);
 
