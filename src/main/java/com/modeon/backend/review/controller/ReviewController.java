@@ -1,11 +1,15 @@
 package com.modeon.backend.review.controller;
 
+import com.modeon.backend.dto.ProductResponse;
 import com.modeon.backend.entity.User;
 import com.modeon.backend.review.dto.ReviewRequest;
 import com.modeon.backend.review.dto.ReviewResponse;
 import com.modeon.backend.review.entity.Review;
 import com.modeon.backend.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +31,15 @@ public class ReviewController {
         return reviewService.getReviewById(user, reviewId);
     }
 
+    @GetMapping("/review-list")
+    public ResponseEntity<Page<ReviewResponse>> getAllReviews(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ReviewResponse> reviews = reviewService.getAllReviews(pageable);
+        return ResponseEntity.ok(reviews);
+    }
 
     @PostMapping("/{historyId}")
     public ResponseEntity<String> writeReview(
