@@ -19,5 +19,8 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
             LocalDateTime startDate,
             LocalDateTime endDate
     );
+
+    // 사용 가능한 쿠폰 개수 조회 (미사용 + 유효기간 내)
+    int countByUserIdAndIsUsedAndExpiresAtAfter(Long userId, boolean isUsed, LocalDateTime now);
 }
 

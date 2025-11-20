@@ -9,6 +9,7 @@ import com.modeon.backend.payment.dto.PaymentConfirmRequest;
 import com.modeon.backend.payment.entity.Payment;
 import com.modeon.backend.payment.repository.PaymentRepository;
 import com.modeon.backend.service.MembershipService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final CartRepository cartRepository;
+    private final EntityManager entityManager;
     private final HistoryRepository historyRepository;
     private final MembershipService membershipService;
 
@@ -39,6 +41,12 @@ public class PaymentService {
         // 중복 결제 방지
         if (paymentRepository.existsByOrderId(request.getOrderId())) {
             throw new RuntimeException("이미 처리된 주문입니다.");
+        }
+
+        // ⭐ 결제 진행 전에 장바구니 먼저 확인 (결제 후 장바구니 없는 상황 방지)
+        List<Cart> cartItems = cartRepository.findByUserId(user.getId());
+        if (cartItems.isEmpty()) {
+            throw new IllegalStateException("장바구니가 비어있습니다. 결제를 진행할 수 없습니다.");
         }
 
         // Toss Payments API 호출
@@ -65,8 +73,7 @@ public class PaymentService {
                 .build();
         paymentRepository.save(payment);
 
-        // 장바구니 아이템을 주문 내역으로 이동
-        List<Cart> cartItems = cartRepository.findByUserId(user.getId());
+        // 장바구니 아이템을 주문 내역으로 이동 (이미 위에서 조회했으므로 재사용)
         int totalOrderAmount = 0;
 
         // History 저장
@@ -87,6 +94,9 @@ public class PaymentService {
                             .build()
             );
         }
+
+        // ⭐ History 저장 후 flush하여 DB에 반영 (membershipUpgrade가 조회할 수 있도록)
+        entityManager.flush();
 
         // ⭐⭐⭐ for문 끝나고 딱 1번 호출해야 함!!
         membershipService.membershipUpgrade(user.getId(), totalOrderAmount);

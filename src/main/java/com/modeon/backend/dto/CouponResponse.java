@@ -10,10 +10,11 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 public class CouponResponse {
-    private Long id;
+    private Long couponId;
     private String name;
     private String type;
     private int value;
     private Integer minPurchaseAmount;
+    private boolean isUsed;
     private LocalDateTime expiresAt;
 }

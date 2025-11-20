@@ -23,6 +23,7 @@ public class MailService {
     private final RedisTemplate<String, String> redisTemplate;
     private final JavaMailSender javaMailSender;
     private final UserRepository userRepository;
+    private final MembershipService membershipService;
 
     // 랜덤으로 숫자 생성
     public String createNumber() {
@@ -93,6 +94,16 @@ public class MailService {
 
         user.setEnabled(true);
         userRepository.save(user);
+
+        // 이메일 인증 완료 시 웰컴 쿠폰 발급
+        log.info("이메일 인증 완료, 웰컴 쿠폰 발급 시작: userId={}", user.getId());
+        try {
+            membershipService.welcomeCoupon(user.getId());
+            log.info("웰컴 쿠폰 발급 완료: userId={}", user.getId());
+        } catch (Exception e) {
+            log.error("웰컴 쿠폰 발급 중 오류 발생: userId={}", user.getId(), e);
+            // 쿠폰 발급 실패해도 이메일 인증은 완료된 것으로 처리
+        }
 
         return user.isEnabled();
     }

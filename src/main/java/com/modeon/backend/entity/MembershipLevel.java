@@ -24,11 +24,12 @@ public enum MembershipLevel {
 
     // 누적 구매 금액을 확인해 멤버쉽 등급을 부여
     public static MembershipLevel getLevelByAmount(int currentAmount) {
+        MembershipLevel result = WELCOME;
         for (MembershipLevel level : values()) {
             if (currentAmount >= level.minimumAmount) {
-                return level;
+                result = level; // 계속 업데이트하여 가장 높은 등급을 찾음
             }
         }
-        return WELCOME;
+        return result;
     }
 }
