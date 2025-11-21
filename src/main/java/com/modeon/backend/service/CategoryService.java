@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +45,13 @@ public class CategoryService {
         authenticationService.checkAdmin();
         List<Category> categories = categoryRepository.findAll();
 
+        return categories.stream()
+                .map(CategoryResponse::fromEntity)
+                .toList();
+    }
+
+    public List<CategoryResponse> getCategoriesByParentId(Long parentsId){
+        List<Category> categories = categoryRepository.findAllByParentId(parentsId);
         return categories.stream()
                 .map(CategoryResponse::fromEntity)
                 .toList();
