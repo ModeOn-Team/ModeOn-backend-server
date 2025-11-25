@@ -1,6 +1,5 @@
 package com.modeon.backend.review.dto;
 
-
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,4 +14,5 @@ public class ReviewResponse {
     private int rating;
     private String content;
     private String createdAt;
+    private String imageUrl;
 }

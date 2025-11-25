@@ -20,20 +20,19 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     private Product product;
-
 
     @OneToOne(fetch = FetchType.LAZY)
     private History history;
 
     private int rating;
     private String content;
+
+    private String imageUrl; 
 
     private LocalDateTime createdAt;
 }

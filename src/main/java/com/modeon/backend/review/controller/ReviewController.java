@@ -1,18 +1,18 @@
 package com.modeon.backend.review.controller;
 
-import com.modeon.backend.dto.ProductResponse;
 import com.modeon.backend.entity.User;
 import com.modeon.backend.review.dto.ReviewRequest;
 import com.modeon.backend.review.dto.ReviewResponse;
-import com.modeon.backend.review.entity.Review;
 import com.modeon.backend.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -41,17 +41,19 @@ public class ReviewController {
         return ResponseEntity.ok(reviews);
     }
 
-    @PostMapping("/{historyId}")
+    @PostMapping(
+            value = "/{historyId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<String> writeReview(
             @AuthenticationPrincipal User user,
             @PathVariable Long historyId,
-            @RequestBody ReviewRequest request
+            @RequestPart("request") ReviewRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        reviewService.writeReview(user, historyId, request);
+        reviewService.writeReview(user, historyId, request, image);
         return ResponseEntity.ok("리뷰가 작성되었습니다.");
     }
-
-
 
     @GetMapping("/history/{historyId}")
     public ReviewResponse getReviewByHistory(
@@ -66,18 +68,20 @@ public class ReviewController {
         return reviewService.getReviewsByProduct(productId);
     }
 
-    // 수정
-    @PutMapping("/{reviewId}")
+    @PutMapping(
+            value = "/{reviewId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<String> updateReview(
             @AuthenticationPrincipal User user,
             @PathVariable Long reviewId,
-            @RequestBody ReviewRequest request
+            @RequestPart("request") ReviewRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        reviewService.updateReview(user, reviewId, request);
+        reviewService.updateReview(user, reviewId, request, image);
         return ResponseEntity.ok("리뷰가 수정되었습니다.");
     }
 
-    //  삭제
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<String> deleteReview(
             @AuthenticationPrincipal User user,
