@@ -70,6 +70,8 @@ public class HistoryController {
                             .shippedAt(h.getShippedAt() != null ? h.getShippedAt().format(dtf) : null)
                             .deliveredAt(h.getDeliveredAt() != null ? h.getDeliveredAt().format(dtf) : null)
                             .productId(h.getProduct().getId())
+                            .requestReason(h.getRequestReason())
+
                             .requestStatus(h.getRequestStatus())
                             .adminResponseReason(h.getAdminResponseReason())
                             .size(h.getSize())
@@ -115,6 +117,7 @@ public class HistoryController {
                         .deliveredAt(h.getDeliveredAt() != null ? h.getDeliveredAt().format(dtf) : null)
                         .size(h.getSize())
                         .color(h.getColor())
+                        .requestReason(h.getRequestReason())
                         .requestStatus(h.getRequestStatus())
                         .adminResponseReason(h.getAdminResponseReason())
                         .requestImages(h.getRequestImages())

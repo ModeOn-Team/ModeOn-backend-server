@@ -28,7 +28,7 @@ public class HistoryResponse {
     private String size;
     private String color;
     private String requestStatus;
-
+    private String requestReason;
     private String adminResponseReason;
 
     private List<String> requestImages;
