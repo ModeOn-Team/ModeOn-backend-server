@@ -1,5 +1,7 @@
 package com.modeon.backend.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.modeon.backend.utill.NaverSignUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +13,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +32,7 @@ public class NaverAuthService {
 
 
 
-    public String requestAccessToken() {
+    public String requestAccessToken() throws JsonProcessingException {
         String clientSecret = "$2a$04$" + clientSecret2;
         Long timestamp = Instant.now().toEpochMilli();
         String signature = NaverSignUtil.generateSignature(clientId, clientSecret, timestamp);
@@ -53,7 +56,11 @@ public class NaverAuthService {
                 .block();
 
         System.out.println(response);
-        return response;
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> map = mapper.readValue(response, Map.class);
+
+        return (String) map.get("access_token");
     }
 
 }

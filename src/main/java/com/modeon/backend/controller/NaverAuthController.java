@@ -1,5 +1,6 @@
 package com.modeon.backend.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.modeon.backend.service.NaverAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,7 +13,7 @@ public class NaverAuthController {
     private final NaverAuthService naverAuthService;
 
     @PostMapping("/api/naver-auth/token")
-    public String getToken() {
+    public String getToken() throws JsonProcessingException {
         return naverAuthService.requestAccessToken();
     }
 }
