@@ -2,6 +2,7 @@ package com.modeon.backend.service;
 
 import com.modeon.backend.utill.NaverSignUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -15,6 +16,13 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class NaverAuthService {
 
+    @Value("${NAVER_CLIENT_ID}")
+    private String clientId;
+
+    @Value("${NAVER_CLIENT_SECRET}")
+    private String clientSecret2;
+
+
     private final WebClient webClient = WebClient.builder()
             .baseUrl("https://api.commerce.naver.com")
             .build();
@@ -22,8 +30,7 @@ public class NaverAuthService {
 
 
     public String requestAccessToken() {
-        String clientId = "7N7vxws0OVPvbvj6F5eFJL";
-        String clientSecret = "$2a$04$VGrl08g/BvXEwcZxcLV7Ve";
+        String clientSecret = "$2a$04$" + clientSecret2;
         Long timestamp = Instant.now().toEpochMilli();
         String signature = NaverSignUtil.generateSignature(clientId, clientSecret, timestamp);
 
