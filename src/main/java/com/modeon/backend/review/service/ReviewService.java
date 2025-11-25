@@ -1,6 +1,5 @@
 package com.modeon.backend.review.service;
 
-import com.modeon.backend.entity.Product;
 import com.modeon.backend.entity.User;
 import com.modeon.backend.history.entity.History;
 import com.modeon.backend.history.repository.HistoryRepository;
@@ -8,7 +7,6 @@ import com.modeon.backend.review.dto.ReviewRequest;
 import com.modeon.backend.review.dto.ReviewResponse;
 import com.modeon.backend.review.entity.Review;
 import com.modeon.backend.review.repository.ReviewRepository;
-import com.modeon.backend.service.AuthenticationService;
 import com.modeon.backend.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,9 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -29,9 +26,7 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final HistoryRepository historyRepository;
-    private final AuthenticationService authenticationService;
     private final FileUploadService fileUploadService;
-
 
     @Transactional(readOnly = true)
     public ReviewResponse getReviewById(User user, Long reviewId) {
@@ -48,14 +43,11 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public Page<ReviewResponse> getAllReviews(Pageable pageable) {
-
         Page<Review> reviews = reviewRepository.findAll(pageable);
-
         return reviews.map(this::toResponse);
     }
 
-
-    public void writeReview(User user, Long historyId, ReviewRequest request, MultipartFile imageFile) {
+    public void writeReview(User user, Long historyId, ReviewRequest request, List<MultipartFile> images) {
 
         History history = historyRepository.findById(historyId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 내역을 찾을 수 없습니다."));
@@ -68,11 +60,7 @@ public class ReviewService {
             throw new IllegalArgumentException("이미 이 구매내역에 대한 리뷰가 존재합니다.");
         }
 
-        // 이미지 업로드
-        String imageUrl = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            imageUrl = fileUploadService.uploadOriginal(imageFile, "reviews");
-        }
+        List<String> imageUrls = uploadImages(images);
 
         Review review = Review.builder()
                 .user(user)
@@ -80,15 +68,12 @@ public class ReviewService {
                 .history(history)
                 .rating(request.getRating())
                 .content(request.getContent())
-                .imageUrl(imageUrl)
+                .imageUrls(imageUrls)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         reviewRepository.save(review);
     }
-
-
-    // 해당 구매내역의 리뷰 조회
 
     @Transactional(readOnly = true)
     public ReviewResponse getReviewByHistory(User user, Long historyId) {
@@ -106,12 +91,8 @@ public class ReviewService {
         return toResponse(review);
     }
 
-
-    //  특정 상품에 대한 리뷰 전체 조회
-
     @Transactional(readOnly = true)
     public List<ReviewResponse> getReviewsByProduct(Long productId) {
-
         return reviewRepository.findByProduct_IdOrderByCreatedAtDesc(productId)
                 .stream()
                 .map(this::toResponse)
@@ -119,9 +100,7 @@ public class ReviewService {
     }
 
 
-    //  리뷰 수정
-
-    public void updateReview(User user, Long reviewId, ReviewRequest request, MultipartFile imageFile) {
+    public void updateReview(User user, Long reviewId, ReviewRequest request, List<MultipartFile> images) {
 
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
@@ -133,16 +112,27 @@ public class ReviewService {
         review.setRating(request.getRating());
         review.setContent(request.getContent());
 
-        // 이미지 수정
-        if (imageFile != null && !imageFile.isEmpty()) {
-            String imageUrl = fileUploadService.uploadOriginal(imageFile, "reviews");
-            review.setImageUrl(imageUrl);
+        List<String> finalUrls = new ArrayList<>();
+
+        // 기존 이미지들
+        if (request.getImageUrls() != null) {
+            finalUrls.addAll(request.getImageUrls());
         }
 
-        reviewRepository.save(review);
+        //  새로 올린 이미지
+        if (images != null) {
+            for (MultipartFile f : images) {
+                if (!f.isEmpty()) {
+                    String url = fileUploadService.uploadOriginal(f, "reviews");
+                    finalUrls.add(url);
+                }
+            }
+        }
+
+        review.setImageUrls(finalUrls);
     }
 
-    //  리뷰 삭제
+
 
     public void deleteReview(User user, Long reviewId) {
 
@@ -156,6 +146,18 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
+    private List<String> uploadImages(List<MultipartFile> files) {
+        List<String> urls = new ArrayList<>();
+        if (files != null) {
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String url = fileUploadService.uploadOriginal(file, "reviews");
+                    urls.add(url);
+                }
+            }
+        }
+        return urls;
+    }
 
     private ReviewResponse toResponse(Review r) {
         return ReviewResponse.builder()
@@ -166,7 +168,7 @@ public class ReviewService {
                 .userName(r.getUser().getUsername())
                 .rating(r.getRating())
                 .content(r.getContent())
-                .imageUrl(r.getImageUrl())
+                .imageUrls(r.getImageUrls())
                 .createdAt(r.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                 .build();
     }

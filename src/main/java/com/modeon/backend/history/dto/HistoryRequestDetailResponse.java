@@ -3,9 +3,11 @@ package com.modeon.backend.history.dto;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @Builder
-public class HistoryRequestListResponse {
+public class HistoryRequestDetailResponse {
 
     private Long id;
 
@@ -18,4 +20,8 @@ public class HistoryRequestListResponse {
     private String requestReason;
 
     private String createdAt;
+
+    private List<String> requestImages;
+
+    private String adminResponseReason;
 }

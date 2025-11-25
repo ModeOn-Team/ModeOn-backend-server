@@ -49,10 +49,24 @@ public class ReviewController {
             @AuthenticationPrincipal User user,
             @PathVariable Long historyId,
             @RequestPart("request") ReviewRequest request,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
-        reviewService.writeReview(user, historyId, request, image);
+        reviewService.writeReview(user, historyId, request, images);
         return ResponseEntity.ok("리뷰가 작성되었습니다.");
+    }
+
+    @PutMapping(
+            value = "/{reviewId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<String> updateReview(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long reviewId,
+            @RequestPart("request") ReviewRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
+        reviewService.updateReview(user, reviewId, request, images);
+        return ResponseEntity.ok("리뷰가 수정되었습니다.");
     }
 
     @GetMapping("/history/{historyId}")
@@ -68,20 +82,6 @@ public class ReviewController {
         return reviewService.getReviewsByProduct(productId);
     }
 
-    @PutMapping(
-            value = "/{reviewId}",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<String> updateReview(
-            @AuthenticationPrincipal User user,
-            @PathVariable Long reviewId,
-            @RequestPart("request") ReviewRequest request,
-            @RequestPart(value = "image", required = false) MultipartFile image
-    ) {
-        reviewService.updateReview(user, reviewId, request, image);
-        return ResponseEntity.ok("리뷰가 수정되었습니다.");
-    }
-
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<String> deleteReview(
             @AuthenticationPrincipal User user,
@@ -90,5 +90,4 @@ public class ReviewController {
         reviewService.deleteReview(user, reviewId);
         return ResponseEntity.ok("리뷰가 삭제되었습니다.");
     }
-
 }

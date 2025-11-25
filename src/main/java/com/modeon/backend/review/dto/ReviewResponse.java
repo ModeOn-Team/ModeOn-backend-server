@@ -3,6 +3,8 @@ package com.modeon.backend.review.dto;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @Builder
 public class ReviewResponse {
@@ -14,5 +16,6 @@ public class ReviewResponse {
     private int rating;
     private String content;
     private String createdAt;
-    private String imageUrl;
+
+    private List<String> imageUrls;
 }
