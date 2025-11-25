@@ -140,14 +140,22 @@ public class HistoryController {
                     .body("배송 완료된 상태에서만 환불이 가능합니다.");
         }
 
+        //  중복 요청 방지
+        if (h.getRequestStatus() != null &&
+                (h.getRequestStatus().equals("REFUND_REQUEST") ||
+                        h.getRequestStatus().equals("EXCHANGE_REQUEST"))) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("이미 요청이 진행 중입니다.");
+        }
+
         h.setRequestStatus("REFUND_REQUEST");
         h.setRequestReason(reason);
-
         h.setRequestImages(uploadImages(images));
 
         historyRepository.save(h);
         return ResponseEntity.ok("환불 요청 완료");
     }
+
 
     // 교환 요청
     @PostMapping("/{historyId}/exchange")
@@ -164,6 +172,14 @@ public class HistoryController {
                     .body("배송 완료된 상태에서만 교환이 가능합니다.");
         }
 
+        //  중복 요청 방지
+        if (h.getRequestStatus() != null &&
+                (h.getRequestStatus().equals("REFUND_REQUEST") ||
+                        h.getRequestStatus().equals("EXCHANGE_REQUEST"))) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("이미 요청이 진행 중입니다.");
+        }
+
         h.setRequestStatus("EXCHANGE_REQUEST");
         h.setRequestReason(reason);
         h.setRequestImages(uploadImages(images));
@@ -171,6 +187,7 @@ public class HistoryController {
         historyRepository.save(h);
         return ResponseEntity.ok("교환 요청 완료");
     }
+
 
     /* 공통 함수 */
     private History validateHistoryUser(Long historyId, User user) {
