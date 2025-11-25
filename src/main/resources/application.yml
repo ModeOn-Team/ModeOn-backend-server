@@ -1,5 +1,8 @@
 spring:
   servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
     encoding:
       charset: UTF-8
       enabled: true
@@ -87,3 +90,7 @@ server:
 
 frontend:
   url: ${FRONTEND_URL}
+
+toss:
+  client-key: ${TOSS_CLIENT_KEY}
+  secret-key: ${TOSS_SECRET_KEY}

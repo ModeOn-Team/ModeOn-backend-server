@@ -1,0 +1,43 @@
+# Multi-stage 빌드를 위한 빌드 스테이지
+FROM eclipse-temurin:17-jdk-jammy AS builder
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# Gradle 설정 파일들 복사
+COPY build.gradle settings.gradle gradlew ./
+COPY gradle gradle
+
+# 의존성 다운로드 (캐시 최적화)
+RUN chmod +x ./gradlew
+RUN ./gradlew dependencies --no-daemon
+
+# 소스 코드 복사 및 빌드
+COPY src src
+RUN ./gradlew bootJar --no-daemon
+
+# 실행 스테이지
+FROM eclipse-temurin:17-jre-jammy
+
+# 비루트 사용자 생성 (Ubuntu 방식)
+RUN addgroup --system spring && adduser --system spring --ingroup spring
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 업로드 디렉토리 생성 및 권한 설정 (root로 생성 후 spring 소유로 변경)
+RUN mkdir -p /app/uploads/product \
+    && chown -R spring:spring /app/uploads
+
+# 빌드된 JAR 파일 복사 (와일드카드 사용)
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+# 권한 설정
+RUN chown spring:spring app.jar
+USER spring
+
+# 포트 노출
+EXPOSE 8080
+
+# 애플리케이션 실행
+ENTRYPOINT ["java", "-jar", "app.jar"]

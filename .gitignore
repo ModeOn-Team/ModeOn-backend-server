@@ -36,5 +36,12 @@ out/
 ### VS Code ###
 .vscode/
 
+# DS_Store
+.DS_Store
+
+
 ### env files ###
 .env
+
+# local image storage
+uploads/product/*
