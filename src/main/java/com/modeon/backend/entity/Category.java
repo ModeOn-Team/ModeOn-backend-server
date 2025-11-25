@@ -2,10 +2,7 @@ package com.modeon.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +20,16 @@ public class Category {
 
     private int depth;
 
+    private String naverCategoryId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     @JsonIgnore
+    @ToString.Exclude
     private Category parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @Builder.Default
+    @ToString.Exclude
     private List<Category> children = new ArrayList<>();
 }
