@@ -38,7 +38,7 @@ public class NaverProductController {
         naverProductService.uploadProduct(products, imageDto, variant);
     }
 
-    @PostMapping(value = "/image/upload-naver/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/image/upload-naver", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<NaverProductImageDto> uploadImages(
             @RequestParam("images") List<MultipartFile> imageFiles
     ) throws IOException {
