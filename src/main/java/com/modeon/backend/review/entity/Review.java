@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,20 +22,23 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     private Product product;
-
 
     @OneToOne(fetch = FetchType.LAZY)
     private History history;
 
     private int rating;
     private String content;
+
+
+    @ElementCollection
+    @CollectionTable(name = "review_images", joinColumns = @JoinColumn(name = "review_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrls = new ArrayList<>();
 
     private LocalDateTime createdAt;
 }

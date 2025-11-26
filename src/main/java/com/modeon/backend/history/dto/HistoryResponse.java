@@ -3,6 +3,8 @@ package com.modeon.backend.history.dto;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @Builder
 public class HistoryResponse {
@@ -26,7 +28,10 @@ public class HistoryResponse {
     private String size;
     private String color;
     private String requestStatus;
-
+    private String requestReason;
     private String adminResponseReason;
+
+    private List<String> requestImages;
+
 
 }
