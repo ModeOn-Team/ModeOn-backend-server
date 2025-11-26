@@ -6,6 +6,7 @@ import java.util.List;
 @Data
 public class NaverProductVariantRequest {
     private List<OptionValue> options;
+    private String guideId;
     private Integer stock;
 
     @Data

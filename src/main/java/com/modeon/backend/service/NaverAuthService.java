@@ -44,8 +44,6 @@ public class NaverAuthService {
         formData.add("grant_type", "client_credentials");
         formData.add("client_secret_sign", signature);
 
-        System.out.println("Request Body: " + formData);
-
         String response = webClient.post()
                 .uri("/external/v1/oauth2/token")
                 .header("Content-Type", "application/x-www-form-urlencoded")
@@ -54,8 +52,6 @@ public class NaverAuthService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-
-        System.out.println(response);
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> map = mapper.readValue(response, Map.class);

@@ -73,6 +73,7 @@ public class ProductVariantService {
         }
         ProductVariant variant = ProductVariant.builder()
                 .product(product)
+                .guideId(request.getGuideId())
                 .naverColorId(colorId)
                 .color(color)
                 .naverSizeId(sizeId)

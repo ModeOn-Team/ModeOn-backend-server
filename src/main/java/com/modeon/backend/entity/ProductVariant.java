@@ -21,6 +21,8 @@ public class ProductVariant {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    private String guideId;
+
     private String naverSizeId;
 
     private String size;

@@ -4,6 +4,7 @@ import com.modeon.backend.dto.*;
 import com.modeon.backend.entity.Category;
 import com.modeon.backend.entity.ProductVariant;
 import com.modeon.backend.repository.CategoryRepository;
+import com.modeon.backend.repository.ProductVariantRepository;
 import com.modeon.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ public class NaverProductController {
     private final CategoryRepository categoryRepository;
     private final NaverProductVariantService naverProductVariantService;
     private final ProductVariantService productVariantService;
+    private final ProductVariantRepository productVariantRepository;
 
     @PostMapping("/upload-naver/{productId}")
     public void ProductUploadToNaver(
@@ -32,12 +34,13 @@ public class NaverProductController {
             @RequestBody NaverProductImageDto imageDto
     ){
         ProductResponse products = productService.getProductDetail(productId);
-        naverProductService.uploadProduct(products, imageDto);
+        List<ProductVariant> variant = productVariantRepository.findByProductId(productId);
+        naverProductService.uploadProduct(products, imageDto, variant);
     }
 
     @PostMapping(value = "/image/upload-naver/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<NaverProductImageDto> uploadImages(
-            @RequestParam("imageFiles") List<MultipartFile> imageFiles
+            @RequestParam("images") List<MultipartFile> imageFiles
     ) throws IOException {
         if (imageFiles == null || imageFiles.isEmpty()) {
             return ResponseEntity.badRequest().build();

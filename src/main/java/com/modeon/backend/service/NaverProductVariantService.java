@@ -23,7 +23,6 @@ public class NaverProductVariantService {
     private final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     public String loadOptionGuides(String categoryId) {
-        System.out.println("categoryId: " + categoryId);
         String accessToken;
         try {
             accessToken = naverAuthService.requestAccessToken();
@@ -51,8 +50,6 @@ public class NaverProductVariantService {
                                 }))
                 .bodyToMono(String.class)
                 .block();
-
-        System.out.println("Naver Response:\n" + response);
 
         return response;
 
