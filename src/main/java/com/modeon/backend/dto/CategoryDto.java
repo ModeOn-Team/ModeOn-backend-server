@@ -12,6 +12,7 @@ public class CategoryDto {
     private String largeCategory;
     private String middleCategory;
     private String smallCategory;
+    private String naverCategoryId;
 
     public static CategoryDto fromEntity(Category category){
         if(category == null) return null;
@@ -22,6 +23,7 @@ public class CategoryDto {
         return CategoryDto.builder()
                 .id(category.getId())
                 .name(category.getName())
+                .naverCategoryId(category.getNaverCategoryId())
                 .smallCategory(category.getName())
                 .middleCategory(middle != null ? middle.getName() : null)
                 .largeCategory(large != null ? large.getName() : null)

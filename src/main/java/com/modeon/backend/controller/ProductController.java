@@ -2,13 +2,8 @@ package com.modeon.backend.controller;
 
 import com.modeon.backend.dto.CategoryResponse;
 import com.modeon.backend.dto.ProductResponse;
-import com.modeon.backend.entity.Color;
 import com.modeon.backend.entity.Gender;
-import com.modeon.backend.entity.Size;
-import com.modeon.backend.service.AuthService;
-import com.modeon.backend.service.CategoryService;
-import com.modeon.backend.service.ProductService;
-import com.modeon.backend.service.WishListService;
+import com.modeon.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -88,14 +83,14 @@ public class ProductController {
             }
         }
 
-        Size sizeEnum = null;
+        String sizeEnum = null;
         if (productSize != null && !productSize.isEmpty()) {
-            sizeEnum = Size.valueOf(productSize.toUpperCase());
+            sizeEnum = productSize.toUpperCase();
         }
 
-        Color colorEnum = null;
+        String colorEnum = null;
         if (color != null && !color.isEmpty()) {
-            colorEnum = Color.valueOf(color.toUpperCase());
+            colorEnum = color.toUpperCase();
         }
 
         Pageable pageable = PageRequest.of(page, size);
@@ -105,5 +100,4 @@ public class ProductController {
         return ResponseEntity.ok(products);
 
     }
-
 }

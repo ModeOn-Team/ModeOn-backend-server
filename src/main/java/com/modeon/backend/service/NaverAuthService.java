@@ -1,0 +1,62 @@
+package com.modeon.backend.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modeon.backend.utill.NaverSignUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.time.Instant;
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+public class NaverAuthService {
+
+    @Value("${NAVER_CLIENT_ID}")
+    private String clientId;
+
+    @Value("${NAVER_CLIENT_SECRET}")
+    private String clientSecret2;
+
+
+    private final WebClient webClient = WebClient.builder()
+            .baseUrl("https://api.commerce.naver.com")
+            .build();
+
+
+
+    public String requestAccessToken() throws JsonProcessingException {
+        String clientSecret = "$2a$04$" + clientSecret2;
+        Long timestamp = Instant.now().toEpochMilli();
+        String signature = NaverSignUtil.generateSignature(clientId, clientSecret, timestamp);
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("client_id", clientId);
+        formData.add("timestamp", String.valueOf(timestamp));
+        formData.add("type", "SELF");
+        formData.add("grant_type", "client_credentials");
+        formData.add("client_secret_sign", signature);
+
+        String response = webClient.post()
+                .uri("/external/v1/oauth2/token")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Accept", "application/json")
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> map = mapper.readValue(response, Map.class);
+
+        return (String) map.get("access_token");
+    }
+
+}

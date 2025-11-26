@@ -1,5 +1,6 @@
 package com.modeon.backend.service;
 
+import com.modeon.backend.dto.NaverProductVariantRequest;
 import com.modeon.backend.dto.ProductResponse;
 import com.modeon.backend.dto.ProductVariantRequest;
 import com.modeon.backend.dto.ProductVariantResponse;
@@ -45,6 +46,40 @@ public class ProductVariantService {
                     .stock(request.getStock())
                     .build();
         }
+
+        return variantRepository.save(variant);
+    }
+
+    @Transactional
+    public ProductVariant createVariantNaver(Long productId, NaverProductVariantRequest request) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+
+        String colorId = null;
+        String sizeId = null;
+        String color = null;
+        String size = null;
+
+        // 옵션 리스트에서 color, size 추출
+        for (NaverProductVariantRequest.OptionValue opt : request.getOptions()) {
+            if ("색상".equals(opt.getOptionName())) {
+                color = opt.getValueName();
+                colorId = opt.getOptionId();
+            } else if ("사이즈".equals(opt.getOptionName())) {
+                size = opt.getValueName();
+                sizeId = opt.getOptionId();
+            }
+        }
+        ProductVariant variant = ProductVariant.builder()
+                .product(product)
+                .guideId(request.getGuideId())
+                .naverColorId(colorId)
+                .color(color)
+                .naverSizeId(sizeId)
+                .size(size)
+                .stock(request.getStock())
+                .build();
 
         return variantRepository.save(variant);
     }

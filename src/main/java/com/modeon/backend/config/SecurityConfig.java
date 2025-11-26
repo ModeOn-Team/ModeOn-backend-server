@@ -47,6 +47,7 @@ public class SecurityConfig {
                                         "/api/auth/**",
                                         "/api/images/**",
                                         "/api/product/**",
+                                        "/api/naver-auth/**",
                                         "/api/category/**",
                                         "/oauth2/**",
                                         "/login/oauth2/**",
