@@ -128,8 +128,8 @@ public class ProductService {
     public Page<ProductResponse> searchProduct(
             Gender gender,
             String categoryName,
-            Size size,
-            Color color,
+            String size,
+            String color,
             String word,
             Pageable pageable
     ) {

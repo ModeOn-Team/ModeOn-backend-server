@@ -1,8 +1,6 @@
 package com.modeon.backend.dto;
 
-import com.modeon.backend.entity.Color;
 import com.modeon.backend.entity.ProductVariant;
-import com.modeon.backend.entity.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductVariantResponse {
     private Long id;
-    private Size size;
-    private Color color;
+    private String size;
+    private String color;
     private Integer stock;
 
     public static ProductVariantResponse fromEntity(ProductVariant variant){

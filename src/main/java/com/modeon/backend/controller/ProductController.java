@@ -2,9 +2,7 @@ package com.modeon.backend.controller;
 
 import com.modeon.backend.dto.CategoryResponse;
 import com.modeon.backend.dto.ProductResponse;
-import com.modeon.backend.entity.Color;
 import com.modeon.backend.entity.Gender;
-import com.modeon.backend.entity.Size;
 import com.modeon.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,7 +21,6 @@ public class ProductController {
     private final ProductService productService;
     private final CategoryService categoryService;
     private final WishListService wishListService;
-    private final NaverProductService naverProductService;
 
     @GetMapping("/categories")
     public List<CategoryResponse> getAllCategories() {
@@ -86,14 +83,14 @@ public class ProductController {
             }
         }
 
-        Size sizeEnum = null;
+        String sizeEnum = null;
         if (productSize != null && !productSize.isEmpty()) {
-            sizeEnum = Size.valueOf(productSize.toUpperCase());
+            sizeEnum = productSize.toUpperCase();
         }
 
-        Color colorEnum = null;
+        String colorEnum = null;
         if (color != null && !color.isEmpty()) {
-            colorEnum = Color.valueOf(color.toUpperCase());
+            colorEnum = color.toUpperCase();
         }
 
         Pageable pageable = PageRequest.of(page, size);
@@ -103,13 +100,4 @@ public class ProductController {
         return ResponseEntity.ok(products);
 
     }
-
-    @PostMapping("/upload-naver/{productId}")
-    public void ProductUploadToNaver(
-            @PathVariable Long productId
-    ){
-        ProductResponse products = productService.getProductDetail(productId);
-        naverProductService.uploadProduct(products);
-    }
-
 }

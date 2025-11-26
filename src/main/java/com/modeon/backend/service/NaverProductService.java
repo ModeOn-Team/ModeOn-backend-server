@@ -3,15 +3,17 @@ package com.modeon.backend.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.modeon.backend.dto.NaverProductImageDto;
 import com.modeon.backend.dto.NaverProductRequest;
-import com.modeon.backend.dto.NaverProductRequest.SmartstoreGroupChannel;
 import com.modeon.backend.dto.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -26,7 +28,7 @@ public class NaverProductService {
 
     private final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
-    public void uploadProduct(ProductResponse product) {
+    public void uploadProduct(ProductResponse product, NaverProductImageDto imageDto) {
         System.out.println("product: " + product);
         String accessToken;
         try {
@@ -58,6 +60,7 @@ public class NaverProductService {
                                                 .size("사이즈 정보")
                                                 .manufacturer("Mode On")
                                                 .caution("세탁 방법")
+                                                .packDate("2000-05")
                                                 .warrantyPolicy("품질 보증 기간")
                                                 .afterServiceDirector("AS 전화번호")
                                             .build()
@@ -94,8 +97,16 @@ public class NaverProductService {
                                         NaverProductRequest.SpecificProducts.Images.builder()
                                                 .representativeImage(
                                                         NaverProductRequest.SpecificProducts.Images.RepresentativeImage.builder()
-                                                                .imageUrl("https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FbTtso6%2FbtsOoNKp7vb%2FAAAAAAAAAAAAAAAAAAAAAA1wOhw5e5iGVFKhG3lbTx0ev7iw-VIz-vtAuJCU7sYe%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1764514799%26allow_ip%3D%26allow_referer%3D%26signature%3DNOi2AsZETj%252BsTEA4%252FDg4cXiJcZU%253D")
+                                                                .url(imageDto.getImages().get(0).getUrl())
                                                                 .build()
+                                                )
+                                                .optionalImages(
+                                                        imageDto.getImages().stream()
+                                                                .skip(1) // 0번 대표 이미지 제외
+                                                                .map(img -> NaverProductRequest.SpecificProducts.Images.OptionalImages.builder()
+                                                                        .url(img.getUrl())
+                                                                        .build())
+                                                                .collect(Collectors.toList())
                                                 )
                                                 .build()
                                 )
@@ -114,7 +125,6 @@ public class NaverProductService {
                 ))
                 .smartstoreGroupChannel(
                         NaverProductRequest.SmartstoreGroupChannel.builder()
-                                .bbsSeq(0)
                                 .build()
                 )
                 .originAreaInfo(

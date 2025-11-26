@@ -44,6 +44,7 @@ public class NaverProductRequest {
             private String size;
             private String manufacturer;
             private String caution;
+            private String packDate;
             private String warrantyPolicy;
             private String afterServiceDirector;
         }
@@ -103,12 +104,18 @@ public class NaverProductRequest {
         @Builder
         public static class Images {
             private RepresentativeImage representativeImage;
-
+            private List<OptionalImages> optionalImages;
 
             @Data
             @Builder
             public static class RepresentativeImage {
-                private String imageUrl;
+                private String url;
+            }
+
+            @Data
+            @Builder
+            public static class OptionalImages {
+                private String url;
             }
         }
     }
