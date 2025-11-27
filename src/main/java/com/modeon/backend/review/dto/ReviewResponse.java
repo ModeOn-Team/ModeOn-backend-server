@@ -1,8 +1,9 @@
 package com.modeon.backend.review.dto;
 
-
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 @Builder
@@ -15,4 +16,6 @@ public class ReviewResponse {
     private int rating;
     private String content;
     private String createdAt;
+
+    private List<String> imageUrls;
 }

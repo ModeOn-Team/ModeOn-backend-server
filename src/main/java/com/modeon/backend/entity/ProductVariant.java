@@ -21,11 +21,15 @@ public class ProductVariant {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Enumerated(EnumType.STRING)
-    private Size size;
+    private String guideId;
 
-    @Enumerated(EnumType.STRING)
-    private Color color;
+    private String naverSizeId;
+
+    private String size;
+
+    private String naverColorId;
+
+    private String color;
 
     @Column(nullable = false)
     private Integer stock;

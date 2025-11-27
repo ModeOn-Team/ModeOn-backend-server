@@ -72,13 +72,17 @@ public class FileUploadService {
             throw new IllegalArgumentException("Only image files are allowed");
         }
     }
-
     private String getFormatName(MultipartFile file) {
         String contentType = file.getContentType();
-        if ("image/webp".equals(contentType)) return "webp";
-        return "jpg"; // JPG/PNG 등
-    }
+        if (contentType == null) return "jpg";
 
+        return switch (contentType) {
+            case "image/webp" -> "webp";
+            case "image/png" -> "png";
+            case "image/gif" -> "gif";
+            default -> "jpg";
+        };
+    }
     private String generateFileName(MultipartFile file, String folder, String format) {
         return "uploads/" + folder + "/" + UUID.randomUUID().toString() + "." + format;
     }

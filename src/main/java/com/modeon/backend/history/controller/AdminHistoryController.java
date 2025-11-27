@@ -1,6 +1,8 @@
 package com.modeon.backend.history.controller;
+
 import com.modeon.backend.history.dto.AdminDecisionRequest;
 import com.modeon.backend.history.dto.UpdateDeliveryStatusRequest;
+import com.modeon.backend.history.dto.HistoryRequestDetailResponse;
 import com.modeon.backend.history.service.AdminHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,12 +14,22 @@ import org.springframework.web.bind.annotation.*;
 public class AdminHistoryController {
 
     private final AdminHistoryService adminHistoryService;
+
+    // 관리자 요청 상세 조회
+    @GetMapping("/{historyId}")
+    public ResponseEntity<HistoryRequestDetailResponse> getRequestDetail(
+            @PathVariable Long historyId
+    ) {
+        return ResponseEntity.ok(adminHistoryService.getRequestDetail(historyId));
+    }
+
+    // 요청 리스트 조회
     @GetMapping("/requests")
     public ResponseEntity<?> getRequests() {
         return ResponseEntity.ok(adminHistoryService.getRequestList());
     }
 
-    // PATCH /api/admin/history/{id}/status
+    // 배송 상태 변경
     @PatchMapping("/{historyId}/status")
     public ResponseEntity<?> updateStatus(
             @PathVariable Long historyId,
@@ -66,4 +78,4 @@ public class AdminHistoryController {
         adminHistoryService.rejectExchange(historyId, req);
         return ResponseEntity.ok("교환이 거절되었습니다.");
     }
-    }
+}
